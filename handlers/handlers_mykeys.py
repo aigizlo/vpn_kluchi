@@ -1,17 +1,16 @@
 from aiogram.dispatcher import FSMContext
-import hashlib
-from logs.logger import logger
+from logger import logger
 from text import instruction
 
-from config import dp, bot, err_send, merchant_id, project_id, secret_key
-from balance.balance import pay_from_personal_balance, add_referral_bonus
+from config import dp, bot, err_send
+from balance import pay_from_personal_balance, add_referral_bonus
 from keyboards.keyboards import *
 from logic_keys.add_keys import add_keys, keys_to_send
 from logic_keys.renewal_keys import renewal_keys
 from text import answer_if_buy, answer_if_not_balance, answer_error
 from states import MyStates
 from user_data import UserData, check_user_in_system
-from balance.balance import money_back
+from balance import money_back
 
 amount_to_month = {
     1: 149,

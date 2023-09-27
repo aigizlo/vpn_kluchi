@@ -1,11 +1,11 @@
 from keyboards.keyboards import generate_prolong_button
-from logs.logger import logger
+from logger import logger
 
 from sender import *
 
 from logic_keys.delete_keys import delete_keys, delete_from_manager
 
-from db_conn.get_conn import create_connection
+from get_conn import create_connection
 from user_data import execute_query
 
 # запрос для получения ключей которые скоро истекут

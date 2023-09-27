@@ -1,8 +1,8 @@
 import mysql.connector
-from db_conn.get_conn import create_connection
+from get_conn import create_connection
 import locale
 
-from logs.logger import logger
+from logger import logger
 from config import err_send, bot
 
 mydb = create_connection()

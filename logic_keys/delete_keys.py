@@ -2,7 +2,7 @@ import logging
 
 import outline_api
 
-from db_conn.get_conn import create_connection
+from get_conn import create_connection
 
 from config import *
 
@@ -10,7 +10,7 @@ from outline_api import Manager  # Импорт вашего класса Manage
 
 from user_data import execute_query
 
-from logs.logger import logger
+from logger import logger
 
 mydb = create_connection()
 

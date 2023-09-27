@@ -1,15 +1,12 @@
-from aiogram.types import callback_query
-
-from logs.logger import logger
+from logger import logger
 from aiogram.dispatcher import FSMContext
 
 from logic_keys.add_keys import add_keys
 from user_data import UserData, check_user_in_system
-from db_conn.get_conn import create_connection
 from config import dp, bot, err_send, support
 from keyboards.keyboards import *
 from states import MyStates
-from text import answer_error, offer_free_plan, text_free_tariff, instruction, offer_free_plan_2
+from text import answer_error, text_free_tariff, instruction, offer_free_plan_2
 
 
 

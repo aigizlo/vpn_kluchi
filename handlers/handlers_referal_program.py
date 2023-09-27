@@ -1,4 +1,4 @@
-from logs.logger import logger
+from logger import logger
 
 from aiogram.dispatcher import FSMContext
 from config import dp, bot_name, support

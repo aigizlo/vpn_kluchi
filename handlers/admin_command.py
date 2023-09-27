@@ -4,7 +4,7 @@ from aiogram import types
 from keyboards.keyboards import main_menu
 from logic_keys.add_keys import keys_to_send
 
-from logs.logger import logger
+from logger import logger
 
 from user_data import UserData, get_list_admins_telegram_id, execute_query, QueryExecutionError
 

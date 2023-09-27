@@ -1,11 +1,8 @@
-import urllib.parse
-import hashlib
-
-from balance.balance import generate_payment_url
-from logs.logger import logger
+from balance import generate_payment_url
+from logger import logger
 from aiogram.dispatcher import FSMContext
-from db_conn.get_conn import create_connection
-from config import dp, bot, secret_key
+from get_conn import create_connection
+from config import dp, secret_key
 from keyboards.keyboards import *
 from states import MyStates
 from text import answer_error

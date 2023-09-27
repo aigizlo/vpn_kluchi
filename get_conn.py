@@ -1,6 +1,6 @@
 import mysql.connector
 from config import host, user, password, database
-from logs.logger import logger
+from logger import logger
 
 
 def create_connection():

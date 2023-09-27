@@ -1,9 +1,9 @@
 import logging
 
 from config import bot, err_send
-from db_conn.get_conn import create_connection
+from get_conn import create_connection
 import datetime
-from logs.logger import logger
+from logger import logger
 
 # SQL-запросы
 sql_query_check_name = """SELECT user_keys.name FROM 

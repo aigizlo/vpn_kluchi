@@ -1,4 +1,4 @@
-from logs.logger import logger
+from logger import logger
 import re
 
 from config import dp

@@ -1,5 +1,5 @@
-from db_conn.get_conn import create_connection
-from logs.logger import logger
+from get_conn import create_connection
+from logger import logger
 
 from user_data import UserData
 

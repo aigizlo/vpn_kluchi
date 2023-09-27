@@ -1,7 +1,5 @@
 import logging
 
-
-
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -20,11 +18,11 @@ from handlers.handlers_all_country import select_country
 
 from handlers.handlers_mykeys import *
 
-from db_conn.get_conn import create_connection
+from get_conn import create_connection
 
 from aiogram import types
 
-from logs.logger import logger
+from logger import logger
 from user_data import if_new_user
 
 mydb = create_connection()
@@ -117,7 +115,6 @@ async def on_startup(dispatcher):
 
     # Уведомляет про запуск
     await on_startup_notify(dispatcher)
-
 
 
 if __name__ == '__main__':
