@@ -6,7 +6,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.utils import executor
 
 from handlers.handlers import get_key_command, my_info, choice_free_tariff
-# from handlers.notifikation import anypay_notification, app
 from handlers.send_all import *
 from handlers.admin_command import user_info_command
 from handlers.handlers_referal_program import process_partners_command
@@ -15,17 +14,10 @@ from logic_keys.expider_keys import get_expired_keys_info
 from sender import on_startup_notify
 from text import start_text, promotion_text
 from handlers.handlers_all_country import select_country
-
 from handlers.handlers_mykeys import *
-
-from get_conn import create_connection
-
 from aiogram import types
-
 from logger import logger
 from user_data import if_new_user
-
-mydb = create_connection()
 
 select_country
 get_key_command
@@ -105,14 +97,6 @@ async def process_start_command(message: types.Message):
 async def on_startup(dispatcher):
     # Устанавливаем дефолтные команды
     await set_default_commands(dispatcher)
-    # WEBHOOK_URL = "https://telegram.outlinevpn.space/notification"
-
-    WEBHOOK_URL = "https://telegram.outlinevpn.space/notification"  # Замените на ваш URL
-    webhook_info = await bot.set_webhook(url=WEBHOOK_URL)
-    print(webhook_info)
-
-    # await if_new_user(64793659666, 'MISAQ', None)
-
     # Уведомляет про запуск
     await on_startup_notify(dispatcher)
 
@@ -120,6 +104,5 @@ async def on_startup(dispatcher):
 if __name__ == '__main__':
     scheduler.add_job(job_function, IntervalTrigger(days=1))
     scheduler.start()
-    # app.run(host='217.28.220.74', port=8080)
     executor.start_polling(dp, on_startup=on_startup, skip_updates=False)
     logger.info('Бот запущен')

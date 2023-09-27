@@ -99,17 +99,11 @@ class UserData:
     def get_user_info(self, user_id):
         try:
             user_name = self.get_user_name(user_id)
-            print(user_name)
             balance = self.get_user_balance_ops_by_user_id(user_id)
-            print(balance)
-            referl_balance = self.get_user_balance_bonus(user_id)
-            print(referl_balance)
+            referral_balance = self.get_user_balance_bonus(user_id)
             count_referrals = self.count_referrals(user_id)
-            print(count_referrals)
             referer_user_id = self.get_referrer_user_id(user_id)
-            print(referer_user_id)
             referer_telegram_id = self.get_referrer_telegram_id(user_id)
-            print(referer_telegram_id)
 
             if self.free_tariff(user_id) == "USED":
 
@@ -120,7 +114,7 @@ class UserData:
             all_info = (
                 f"<b>Имя пользователя:</b> {user_name}\n"
                 f"<b>Баланс пользователя:</b> {balance}\n"
-                f"<b>Реферальный баланс:</b> {referl_balance}\n"
+                f"<b>Реферальный баланс:</b> {referral_balance}\n"
                 f"<b>Количество рефералов:</b> {count_referrals}\n"
                 f"<b>Реферер:</b> {referer_user_id}, {referer_telegram_id}\n"
                 f"<b>Бесплатный тариф:</b> {free_tariff}\n\n"
