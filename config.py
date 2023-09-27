@@ -6,15 +6,23 @@ from outline_api import (
 
     Manager)
 
+# Настройки бота
 # token = '6074035686:AAEWCJFAsnRdOBBRNNtl56Ef-wed8m-ucZg'
 #
 # bot_name = 'outlinexbot'
+#
 #
 token = '6353790329:AAHQYdMTQ9mSuPkdw80DuOlerpsuhOq0qzo'
 
 bot_name = 'off_radar_bot'
 
 support = "@outlinex_support"
+
+bot = Bot(token=token)
+
+storage = MemoryStorage()
+
+dp = Dispatcher(bot, storage=storage)
 
 # Указываем Merchant ID и Secret Key от AnyPay
 merchant_id = '156CC3CBD6B66EFF7F'
@@ -29,8 +37,6 @@ password = "Imaroot1"
 database = "outline"
 
 # данные для подключения к менеджеру outline
-# сервер 1
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # cервер номер 1 Nederland
@@ -70,17 +76,11 @@ managers = {
     4: manager_spb,
     5: manager_turkey
 }
-
-bot = Bot(token=token)
-
-storage = MemoryStorage()
-
-dp = Dispatcher(bot, storage=storage)
-
+# коэфициент реферального бонуса
 coefficeint_bonus = 0.2
-
+# имеют доступ к админским командам
 admin_from_config = [502811372, 1139164093, 235013345]
-
+# уведомления об ошибках
 err_send = 502811372
 
 
