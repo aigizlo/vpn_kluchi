@@ -14,12 +14,11 @@ sql_pay_query = """
    WHERE user_id = %s
 """
 
+
 # запрос для начисления реферального бонуса
-sql_add_referral_bonus = """INSERT INTO user_balance_ops (user_id, optype, amount) VALUES (%s, 'bonus', %s)"""
-
-mydb = create_connection()
-
-cursor = mydb.cursor()
+sql_add_referral_bonus = """INSERT INTO user_balance_ops 
+                        (user_id, optype, amount)
+                        VALUES (%s, 'bonus', %s)"""
 
 # инициализируем класс UserData для его использования
 user_data = UserData()
@@ -58,8 +57,9 @@ def add_referral_bonus(user_id, purchase_amount):
 
 
 def money_back(user_id, money):
+    sql_add_balance = "INSERT INTO user_balance_ops (user_id, optype, amount)  VALUES (%s, 'addmoney', %s)"
+
     try:
-        sql_add_balance = "INSERT INTO user_balance_ops (user_id, optype, amount)  VALUES (%s, 'addmoney', %s)"
         execute_query(sql_add_balance, (user_id, money,))
         logger.info(
             f"MONEY BACK - SUCSSESS - возвращены средства на баланс user_id - {user_id}, cумма {money}")
@@ -70,7 +70,24 @@ def money_back(user_id, money):
         return False
 
 
-def generate_payment_url(pay_id, amount,secret_key):
+def creating_payment(amount, user_id, key_id=None):
+    try:
+
+        with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
+
+            sql_create_bill = "INSERT INTO bills (amount, user_id, key_id) VALUES (%s, %s, %s)"
+
+            mycursor.execute(sql_create_bill, (amount, user_id, key_id))
+
+            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}")
+
+        return mycursor.lastrowid
+
+    except Exception as e:
+        logger.error(f"CREATE PAYMENT - FAILED: user_id - {user_id}, amount - {amount}, ERROR - {e}")
+
+
+def generate_payment_url(pay_id, amount, secret_key):
     project_id = '12622'
     currency = 'RUB'
     desc = 'testpay'
@@ -81,9 +98,9 @@ def generate_payment_url(pay_id, amount,secret_key):
         'merchant_id': project_id,
         'pay_id': pay_id,
         'amount': amount,
-        'currency' : currency,
-        'desc' : desc,
-        'success_url' : success_url,
+        'currency': currency,
+        'desc': desc,
+        'success_url': success_url,
         'fail_url': fail_url
     }
 
@@ -92,10 +109,8 @@ def generate_payment_url(pay_id, amount,secret_key):
     # подпись
     sign = hashlib.sha256(":".join(arr_sign).encode()).hexdigest()
 
-
     # params['sign'] = sign
     encoded_params = urllib.parse.urlencode(params)
-
 
     # подпись к параметрам
     encoded_params += f'&sign={sign}'

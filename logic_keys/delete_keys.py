@@ -81,8 +81,7 @@ def delete_keys(key_ids):  # key_ids удаляем из базы и
 
 def get_server_id(key_id):  # ищем server_id по key_id
     try:
-        execute_query(query_templates['search_server_id_with_key_id'], (key_id,))
-        result = cursor.fetchone()
+        result = execute_query(query_templates['search_server_id_with_key_id'], (key_id,))
         return result[0][0]
         logger.info(f"server_id найден {result[0][0]}")
     except Exception as e:
@@ -95,6 +94,8 @@ async def delete_from_manager(key_ids, outline_keys):
         success = True  # Флаг для отслеживания успеха удаления всех ключей
         for key_id, outline_key in zip(key_ids, outline_keys):
             server_id = get_server_id(key_id)
+
+            print(server_id)
             if server_id:
                 manager = managers.get(server_id)
                 try:

@@ -1,7 +1,7 @@
 from keyboards.keyboards import generate_prolong_button
 from logger import logger
 
-from sender import *
+from sender import send_message, send_message_no_parse_mode, send , err_send,bot
 
 from logic_keys.delete_keys import delete_keys, delete_from_manager
 
@@ -26,8 +26,6 @@ sql_get_expired_keys_2 = """
     WHERE stop_date < NOW();
 """
 
-mydb = create_connection()
-
 # шаблоны для отправки сообщений
 message_templates = {
     'KEY_EXPIRED': "Срок вашего ключа '<b>{name}</b>', страна '<i>{country}</i>' истек, и он был удален",
@@ -38,7 +36,6 @@ message_templates = {
                              "действие вашего ключа, "
                              "чтобы избежать его удаления",
 }
-
 
 
 # корректируем дни, дней, день
@@ -114,11 +111,11 @@ async def get_expired_keys_info():
                     # предупреждение и предложение продлить ключ
                     await send_message(id, text, key_buttons)
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
-                                f"{id_for_delete_in_manager} - outline_keys" )
+                                f"{id_for_delete_in_manager} - outline_keys")
 
         except Exception as e:
             logger.error(f"Ошибка при удалении ключей из баз данных ключей {id_for_delet_in_bd} - user_keys и "
-                         f"{id_for_delete_in_manager} - outline_keys, ошиюка{e} ")
+                         f"{id_for_delete_in_manager} - outline_keys, ошибка - {e} ")
 
     # передаем ключи для удаления
     if id_for_delet_in_bd and id_for_delete_in_manager:
@@ -130,5 +127,5 @@ async def get_expired_keys_info():
                          f" {id_for_delet_in_bd} - user_keys и "
                          f" {id_for_delete_in_manager} - outline_keys")
             await bot.send_message(err_send, f"Ошибка при удалении ключей в manager(def delete_from_manager) ключи :"
-                               f" {id_for_delet_in_bd} - user_keys и "
-                               f" {id_for_delete_in_manager} - outline_keys")
+                                             f" {id_for_delet_in_bd} - user_keys и "
+                                             f" {id_for_delete_in_manager} - outline_keys")

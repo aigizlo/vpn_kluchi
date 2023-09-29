@@ -102,7 +102,7 @@ async def on_startup(dispatcher):
 
 
 if __name__ == '__main__':
-    scheduler.add_job(job_function, IntervalTrigger(days=1))
+    scheduler.add_job(job_function, IntervalTrigger(hours=1))
     scheduler.start()
     executor.start_polling(dp, on_startup=on_startup, skip_updates=False)
     logger.info('Бот запущен')

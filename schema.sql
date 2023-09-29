@@ -12,8 +12,8 @@ CREATE TABLE user_balance_ops (
     opdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     optype ENUM('addmoney', 'payment', 'correction', 'bonus') NOT NULL,
     key_id INT,         # ссылка на ключ для payment
-    trx_id VARCHAR(32), # ID транзакции в платёжной системе для payment
-    amount INT NOT NULL # рубли
+    amount INT NOT NULL, # рубли
+    bill_id INT,
 );
 
 CREATE TABLE user_keys (
@@ -30,7 +30,6 @@ CREATE TABLE servers (
     country VARCHAR(64) NOT NULL
 );
 
-
 CREATE TABLE outline_keys (
     key_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     outline_key_id INT NOT NULL,
@@ -38,3 +37,14 @@ CREATE TABLE outline_keys (
     key_value VARCHAR(255) NOT NULL,
     used TINYINT(1) NOT NULL
 );
+
+CREATE TABLE bills (
+    pay_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, # внутренний id платежа
+    bill_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    amount INT NOT NULL, # рубли
+    user_id INT NOT NULL,
+    key_id INT,         # ссылка на ключ для payment
+    is_payed TINYINT NOT NULL,
+    trx_id VARCHAR(32), # ID транзакции в платёжной системе для payment
+);
+

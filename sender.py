@@ -4,12 +4,8 @@ from config import bot, err_send
 
 
 async def send_message(chat_id, text, keyboard=None):
-    text = text.replace(",", r"\,")
-    text = text.replace(".", r"\.")
-    text = text.replace("!", r"\!")
-    # text = text.replace(",", r"\,")
     if keyboard:
-        await bot.send_message(chat_id=chat_id, text=text, parse_mode="HTML", keyboard=keyboard)
+        await bot.send_message(chat_id=chat_id, text=text, parse_mode="HTML", reply_markup=keyboard)
     else:
         await bot.send_message(chat_id=chat_id, text=text, parse_mode="HTML")
 

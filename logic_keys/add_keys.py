@@ -90,11 +90,6 @@ async def add_keys(server_id, user_id, key_name, days):
 # проверяем на повторность название сервера
 def check_names(user_id, key_name):
     mydb = create_connection()
-
-    if mydb is None:
-        logger.error('Не удалось создать соединение с БД')
-        return "Произошла ошибка, обратитесь к администратору или попробуйте еще раз"
-
     try:
         with mydb.cursor(buffered=True) as mycursor:
             mycursor.execute(sql_query_check_name, (user_id,))
