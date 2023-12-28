@@ -1,7 +1,4 @@
-import urllib.parse
-import hashlib
-
-from config import coefficeint_bonus
+from config import coefficeint_bonus, partners, partner_bonus
 from get_conn import create_connection
 from logger import logger
 
@@ -13,7 +10,6 @@ sql_pay_query = """
   SELECT user_id, CURRENT_TIMESTAMP, - %s FROM users
    WHERE user_id = %s
 """
-
 
 # запрос для начисления реферального бонуса
 sql_add_referral_bonus = """INSERT INTO user_balance_ops 
@@ -45,7 +41,11 @@ def add_referral_bonus(user_id, purchase_amount):
         # ищем юзер_айди реферера
         referer_user_id = user_data.get_referrer_user_id(user_id)
 
-        bonus_rub = purchase_amount * coefficeint_bonus
+        if referer_user_id in partners:
+            bonus_rub = purchase_amount * partner_bonus
+
+        else:
+            bonus_rub = purchase_amount * coefficeint_bonus
 
         execute_query(sql_add_referral_bonus, (referer_user_id, bonus_rub))
         logger.info(f"REFERRAL_BONUS_SUCCESS: Начислен реферальный бонус user - "
@@ -70,14 +70,15 @@ def money_back(user_id, money):
         return False
 
 
-def creating_payment(amount, user_id, key_id=None):
+# cоздаем неоплаченный платеж в базе bills для покупки (НЕ ПРОДЛЕНИЕ)
+def creating_payment(amount, user_id):
     try:
 
         with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
 
-            sql_create_bill = "INSERT INTO bills (amount, user_id, key_id) VALUES (%s, %s, %s)"
+            sql_create_bill = "INSERT INTO bills (amount, user_id) VALUES (%s, %s)"
 
-            mycursor.execute(sql_create_bill, (amount, user_id, key_id))
+            mycursor.execute(sql_create_bill, (amount, user_id,))
 
             logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}")
 
@@ -87,35 +88,18 @@ def creating_payment(amount, user_id, key_id=None):
         logger.error(f"CREATE PAYMENT - FAILED: user_id - {user_id}, amount - {amount}, ERROR - {e}")
 
 
-def generate_payment_url(pay_id, amount, secret_key):
-    project_id = '12622'
-    currency = 'RUB'
-    desc = 'testpay'
-    success_url = ''
-    fail_url = ''
+def creating_payment_for_renewal(amount, user_id, key_id):
+    try:
 
-    params = {
-        'merchant_id': project_id,
-        'pay_id': pay_id,
-        'amount': amount,
-        'currency': currency,
-        'desc': desc,
-        'success_url': success_url,
-        'fail_url': fail_url
-    }
+        with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
 
-    arr_sign = [project_id, pay_id, amount, currency, desc, success_url, fail_url, secret_key]
+            sql_create_bill = "INSERT INTO bills (amount, user_id, key_id) VALUES (%s, %s, %s)"
 
-    # подпись
-    sign = hashlib.sha256(":".join(arr_sign).encode()).hexdigest()
+            mycursor.execute(sql_create_bill, (amount, user_id, key_id,))
 
-    # params['sign'] = sign
-    encoded_params = urllib.parse.urlencode(params)
+            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}")
 
-    # подпись к параметрам
-    encoded_params += f'&sign={sign}'
+        return mycursor.lastrowid
 
-    # итоговая ссылка
-    payment_url = f"https://anypay.io/merchant?{encoded_params}"
-
-    return payment_url
+    except Exception as e:
+        logger.error(f"CREATE PAYMENT - FAILED: user_id - {user_id}, amount - {amount}, ERROR - {e}")

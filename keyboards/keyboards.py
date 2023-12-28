@@ -1,42 +1,142 @@
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from config import one_month, two_month, three_month, six_month
+from config import one_month, three_month, one_year
+
+server_id_country = {
+    1: '🇱🇺Нидерланды Амстердам',
+    2: '🇩🇪Германия Франкфурт',
+    3: '🇰🇿Казахстан Астана',
+    4: '🇷🇺Россия',
+    5: '🇹🇷Турция Стамбул',
+    6: '🇺🇸Америка Лос Анджелес'
+}
 
 
-# # Cпособы оплаты
-def generate_prolong_button(key_name):
+# генерируем имена ключей для выбора одного из них для смены локации
+def generate_key_buttons_for_exchange(name_keys):
     keyboard = InlineKeyboardMarkup(row_width=1)
+    for name in name_keys:
+        keyboard.add(InlineKeyboardButton(text=f"«Ключ № {name[0]}»", callback_data=f"selecting_key_for_exchange:{name[0]}"))
 
-    key_name = [(key_name,)]
-
-    keyboard.add(InlineKeyboardButton(text=f"👉 Продлить ключ «{key_name[0][0]}» 👈",
-                                      callback_data=f"select_key:{key_name[0][0]}"))
-
-    keyboard.add(InlineKeyboardButton(text="Отмена", callback_data="go_back"))
+    keyboard.add(InlineKeyboardButton(text="⬅️Назад", callback_data="go_back"))
 
     return keyboard
-
 
 # генерация кнопок для продления
 def generate_key_buttons(name_keys):
     keyboard = InlineKeyboardMarkup(row_width=1)
     for name in name_keys:
-        keyboard.add(InlineKeyboardButton(text=f"«{name[0]}»", callback_data=f"select_key:{name[0]}"))
+        keyboard.add(InlineKeyboardButton(text=f"«Ключ №{name[0]}»", callback_data=f"select_key:{name[0]}"))
 
+    keyboard.add(InlineKeyboardButton(text="⬅️Назад", callback_data="go_back"))
+
+    return keyboard
+
+# генерим имена серверов
+def generate_location_button(servers):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for server in servers:
+        location = server_id_country.get(server)
+        keyboard.add(InlineKeyboardButton(text=location, callback_data=f"select_country_for_exchange:{server}"))
     keyboard.add(InlineKeyboardButton(text="Отмена", callback_data="go_back"))
 
     return keyboard
+def capcha():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("Я не робот", callback_data="not_bot"),
+    )
+    return keyboard
+
+
+def keyboard_if_not_keys():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("✅Получить ключ", callback_data="get_keys"),
+        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back"),
+    )
+    return keyboard
+
+
+def keyboard_if_have_keys():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("📍Сменить локацию", callback_data="exchange_keys"),
+        types.InlineKeyboardButton("⌛️Продлить ключи", callback_data="prolong_keys"),
+        types.InlineKeyboardButton("✅Получить ключ", callback_data="get_keys"),
+        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back"),
+    )
+    return keyboard
+
+
+def plus_balance():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("Пополнить баланс")
+    )
+    return keyboard
+
 
 
 # кнопка для создания промокода
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("Подписаться на канал", url="https://t.me/off_radar"),
-        types.InlineKeyboardButton("Я уже подписан", callback_data="subscribe_ago"),
-        types.InlineKeyboardButton("Нет, спасибо", callback_data="subscribe_no_thanks"),
+        types.InlineKeyboardButton("✅Подписаться на канал", url="https://t.me/off_radar"),
+        types.InlineKeyboardButton("🔁Проверить подписку", callback_data="subscribe_check"),
 
+    )
+    return keyboard
+
+
+# Cпособы оплаты
+def kb_pay(amount, any_pay_link=None, fk_link=None):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton(f"Карта/СПБ/Криптовалюта - {amount} рублей", url=any_pay_link),
+        # types.InlineKeyboardButton(f"СПБ / С мобильного / Криптовалюта - {amount} рублей", url=fk_link),
+        types.InlineKeyboardButton("Отмена", callback_data="go_back")
+    )
+    return keyboard
+
+
+
+
+
+# Получить ключ
+def choice_period():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton(f"3 дня в подарок 🎁", callback_data=f'subscribe_ago'),
+        types.InlineKeyboardButton(f"1 месяц – {one_month} р.", callback_data=f'payment_method:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"payment_method:{three_month}"),
+        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
+        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
+    )
+    return keyboard
+
+
+# Получить ключ без бесплатного
+def choice_period_not_free():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'payment_method:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"payment_method:{three_month}"),
+        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
+        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
+    )
+    return keyboard
+
+
+# для выбора месяца, на который будет продлеваться ключ
+def choice_renewal_period():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'renewal:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"renewal:{three_month}"),
+        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"renewal:{one_year}"),
+        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
     )
     return keyboard
 
@@ -45,195 +145,45 @@ def subscribe():
 def get_pay_method_keyboard():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("💰Cписать с баланса Личного кабинета", callback_data=f"balance_pay_sever"),
-        types.InlineKeyboardButton("💳Оплата онлайн", callback_data="online_pay"),
-        types.InlineKeyboardButton("Отмена", callback_data="go_back")
+        types.InlineKeyboardButton("💰any pay", callback_data=f"any_pay"),
+        types.InlineKeyboardButton("💳fro pay", callback_data="fro_pay"),
+        types.InlineKeyboardButton("❌Отмена", callback_data="go_back")
     )
     return keyboard
 
 
-def kb_pay(amount, pay_link):
+def main_menu_inline():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton(f"Перейти к оплате {amount} рублей", url=pay_link)
-    )
-    return keyboard
-
-
-def free_tariff():
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton("🎁Попробовать бесплатно", callback_data=f"free_tariff"),
-        types.InlineKeyboardButton("Нет, спасибо", callback_data=f"subscribe_no_thanks"),
-    )
-    return keyboard
-
-
-def choice_location_free_tariff():
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton('🇱🇺Нидерланды – Амстердам', callback_data=f"free_select_country:{1}"),
-        types.InlineKeyboardButton('🇩🇪Германия – Франкфурт', callback_data=f"free_select_country:{2}"),
-        types.InlineKeyboardButton('🇷🇺Россия – Санкт-Петербург', callback_data=f"free_select_country:{4}"),
-        types.InlineKeyboardButton('🇰🇿Казахстан – Астана', callback_data=f"free_select_country:{3}"),
-        types.InlineKeyboardButton('🇹🇷Турция – Стамбул', callback_data=f"free_select_country:{5}"),
-        types.InlineKeyboardButton("Отмена", callback_data=f"go_back"))
-    return keyboard
-
-
-# для выбора месяца, на который будет продлеваться ключ
-def choice_renewal_period():
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'renewal:{1}'),
-        types.InlineKeyboardButton(f"2 месяца – {two_month} рублей Скидка 10%", callback_data=f"renewal:{2}"),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} рублей Скидка 15%", callback_data=f"renewal:{3}"),
-        types.InlineKeyboardButton(f"6 месяцев – {six_month} рублей Скидка 30%", callback_data=f"renewal:{6}"),
-        types.InlineKeyboardButton("Отмена", callback_data="go_back")
-    )
-    return keyboard
-
-
-# кнопка для создания промокода
-def promocode():
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton("Создать промокод", callback_data=f'promo_code'),
-        types.InlineKeyboardButton("Отмена", callback_data="go_back")
-    )
-    return keyboard
-
-
-# Создание словаря с информацией о тарифных опциях
-tariff_options = {
-    "amsterdam": [
-        ("🇱🇺Амстердам 1 месяц", one_month),
-        ("🇱🇺Амстердам 2 месяца", two_month),
-        ("🇱🇺Амстердам 3 месяца", three_month),
-        ("🇱🇺Амстердам 6 месяцев", six_month)
-    ],
-    "germany": [
-        ("🇩🇪Франкфурт 1 месяц", one_month),
-        ("🇩🇪Франкфурт 2 месяца", two_month),
-        ("🇩🇪Франкфурт 3 месяца", three_month),
-        ("🇩🇪Франкфурт 6 месяцев", six_month)
-    ],
-    "russia": [
-        ("🇷🇺Санкт-Петербург 1 месяц", one_month),
-        ("🇷🇺Санкт-Петербург 2 месяца", two_month),
-        ("🇷🇺Санкт-Петербург 3 месяца", three_month),
-        ("🇷🇺Санкт-Петербург 6 месяцев", six_month)
-    ],
-    "turkey": [
-        ("🇹🇷Стамбул 1 месяц", one_month),
-        ("🇹🇷Стамбул 2 месяца", two_month),
-        ("🇹🇷Стамбул 3 месяца", three_month),
-        ("🇹🇷Стамбул 6 месяцев", six_month)
-    ],
-    "kz": [
-        ("🇰🇿Астана 1 месяц", one_month),
-        ("🇰🇿Астана 2 месяца", two_month),
-        ("🇰🇿Астана 3 месяца", three_month),
-        ("🇰🇿Астана 6 месяцев", six_month)
-    ]
-}  # Генерация клавиатуры на основе информации из словаря
-
-
-# генерируем клавиатуру с тарифами
-def generate_tariff_keyboard(location):
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
-    buttons = []
-
-    for option in tariff_options[location]:
-        button_text, price = option
-        button = types.KeyboardButton(f"{button_text} — {price} рублей")
-        buttons.append(button)
-
-    buttons.append(types.KeyboardButton('🔙Назад'))
-    keyboard.add(*buttons)
+        types.InlineKeyboardButton("🔐Получить ключ", callback_data=f"get_keys"),
+        types.InlineKeyboardButton('🔑Мои ключи', callback_data=f"my_keys"),
+        types.InlineKeyboardButton('💡Почему мы?', callback_data=f"my_keys"))
 
     return keyboard
 
 
-# кнопка Баланс
-def balance_keyboard():
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
-    button_balance = types.KeyboardButton('Пополнить баланс')
-    button = types.KeyboardButton('🔙Назад'
-                                  '')
-    keyboard.add(button_balance, button)
-
-    return keyboard
+# def back():
+#     keyboard = types.InlineKeyboardMarkup(row_width=1)
+#     keyboard.add(
+#         types.InlineKeyboardButton("🔙Назад", callback_data="go_back")
+#     )
+#     return keyboard
 
 
-# кнопка Назад
-def main_menu():
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
-    button1 = types.KeyboardButton('🔐Получить ключ')
-    button2 = types.KeyboardButton('🔑Мои ключи')
-    button3 = types.KeyboardButton('💰Баланс')
-    button4 = types.KeyboardButton('💵Партнерская программа')
-    # button5 = types.KeyboardButton('Инструкция')
-    keyboard.add(button1, button2, button3, button4)
-
-    return keyboard
+# def back_and_prolong_inline_button():
+#     keyboard = types.InlineKeyboardMarkup(row_width=2)
+#     prolong_button = types.InlineKeyboardButton('⌛️Продлить действие', callback_data='prolong_keys')
+#     buy_button = types.InlineKeyboardButton('🔐Получить новый ключ', callback_data='get_keys')
+#     button_back = types.InlineKeyboardButton('🔙Назад', callback_data='go_back')
+#     keyboard.add(prolong_button, buy_button, button_back)
+#
+#     return keyboard
 
 
-# Получить ключ
-def kb_servers():
-    keyboard = types.ReplyKeyboardMarkup(row_width=2)
-
-    button_back = types.KeyboardButton('🔙Назад')
-
-    button_Amsterdam = types.KeyboardButton('🇱🇺Нидерланды – Амстердам')
-    button_Germany = types.KeyboardButton('🇩🇪Германия – Франкфурт')
-    button_Russia = types.KeyboardButton('🇷🇺Россия – Санкт-Петербург')
-    button_KZ = types.KeyboardButton('🇰🇿Казахстан – Астана')
-    button_Turkey = types.KeyboardButton('🇹🇷Турция – Стамбул')
-
-    keyboard.add(button_Germany, button_Amsterdam, button_Russia, button_KZ, button_Turkey, button_back)
-
-    return keyboard
-
-
-def back_button():
-    keyboard = types.ReplyKeyboardMarkup(row_width=1)
-    button = types.KeyboardButton('🔙Назад')
-    keyboard.add(button)
-
-    return keyboard
-
-
-def back_and_buy_button():
-    keyboard = types.ReplyKeyboardMarkup(row_width=1)
-    buy_button = types.KeyboardButton('🔐Получить ключ')
-    button_back = types.KeyboardButton('🔙Назад')
-    keyboard.add(buy_button, button_back)
-
-    return keyboard
-
-
-def back_and_prolong_button():
-    keyboard = types.ReplyKeyboardMarkup(row_width=1)
-
-    button_back = types.KeyboardButton('🔙Назад')
-
-    prolong_button = types.KeyboardButton('⌛️Продлить ключи')
-
-    buy_button = types.KeyboardButton('🔐Получить ключ')
-
-    keyboard.add(prolong_button, buy_button, button_back)
-
-    return keyboard
-
-
-def back_and_withdraw():
-    keyboard = types.ReplyKeyboardMarkup(row_width=1)
-
-    button_back = types.KeyboardButton('🔙Назад')
-
-    withdraw = types.KeyboardButton('Вывод средств')
-
-    keyboard.add(withdraw, button_back)
-
-    return keyboard
+# def back_and_withdraw_inline():
+#     keyboard = types.InlineKeyboardMarkup(row_width=1)
+#     withdraw_button = types.InlineKeyboardButton('Вывод средств', callback_data='withdraw_bonus')
+#     button_back = types.InlineKeyboardButton('🔙Назад', callback_data='go_back')
+#     keyboard.add(withdraw_button, button_back)
+#
+#     return keyboard

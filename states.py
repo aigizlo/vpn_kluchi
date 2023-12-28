@@ -5,6 +5,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 class MyStates(FSMContext):
 
     # общее состояние для оплаты
+    payment_method = 'payment_method'
+
     pay_from_balance = 'pay_from_balance'
 
     # cопровождение до оплаты
@@ -18,12 +20,13 @@ class MyStates(FSMContext):
     # нажатие кнопки Получить ключ для выбора серверов
     state_server_selection = 'state_server_selection'
 
-
     state_get_keys = 'state_get_keys'
     # мои ключи - продление ключей
     state_my_keys = 'state_my_keys'
     # key renewal
     state_key_renewal = 'state_key_renewal'
+    # смена локации
+    state_key_exchange = 'state_key_exchange'
     # выбор ключа
     state_key_for_renewal = 'state_key_for_renewal'
     # выбор оплаты
@@ -36,14 +39,7 @@ class MyStates(FSMContext):
     state_send_pay_link = 'state_refill'
 
 
-    # promocodes states (эти состояния не задейственны)
-    state_promo_my = "state_promo_my"
-    state_promo_create = "state_promo_create"
-    state_promo_name = "state_promo_name"
 
-
-
-    state_fee_tariff = 'state_fee_tariff'
 
     state_choice_fee_tariff = 'state_choice_fee_tariff'
 

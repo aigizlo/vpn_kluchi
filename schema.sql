@@ -48,3 +48,12 @@ CREATE TABLE bills (
     trx_id VARCHAR(32), # ID транзакции в платёжной системе для payment
 );
 
+--CREATE TABLE bills (
+--    pay_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+--    bill_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    amount INT NOT NULL,
+--    user_id INT NOT NULL,
+--    is_payed TINYINT NOT NULL,
+--    trx_id VARCHAR(32)
+--);
+

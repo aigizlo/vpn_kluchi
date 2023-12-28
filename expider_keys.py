@@ -1,11 +1,12 @@
-from keyboards.keyboards import generate_prolong_button
+from time import sleep
+from telebot_ import sync_send_message, generate_prolong_button
+from telegram.error import TelegramError
 from logger import logger
 
-from sender import send_message, send_message_no_parse_mode, send , err_send,bot
+from config import err_send
 
 from logic_keys.delete_keys import delete_keys, delete_from_manager
 
-from get_conn import create_connection
 from user_data import execute_query
 
 # запрос для получения ключей которые скоро истекут
@@ -26,13 +27,16 @@ sql_get_expired_keys_2 = """
     WHERE stop_date < NOW();
 """
 
+
 # шаблоны для отправки сообщений
 message_templates = {
     'KEY_EXPIRED': "Срок вашего ключа '<b>{name}</b>', страна '<i>{country}</i>' истек, и он был удален",
-    'KEY_EXPIRES_IN_X_DAYS': "У вас осталось {days} до конца действия ключа '<b>{name}</b>', страна '<i>{country}</i>'. Продлите "
+    'KEY_EXPIRES_IN_X_DAYS': "У вас осталось {days} до конца действия ключа '<b>{name}</b>', "
+                             "страна '<i>{country}</i>'. Продлите "
                              "действие вашего ключа, "
                              "чтобы избежать его удаления",
-    'KEY_EXPIRES_IN_1_DAYS': "У вас остался {days} до конца действия ключа '<b>{name}</b>', страна '<i>{country}</i>'. Продлите "
+    'KEY_EXPIRES_IN_1_DAYS': "У вас остался {days} до конца действия ключа '<b>{name}</b>', "
+                             "страна '<i>{country}</i>'. Продлите "
                              "действие вашего ключа, "
                              "чтобы избежать его удаления",
 }
@@ -52,15 +56,14 @@ def plural_days(days):
             return f"{days} дней"
 
 
-# ищем истекающие и истекшие ключи и отправляем соответсвующее уведомление
-async def get_expired_keys_info():
+def get_expired_keys_info():
     logger.info(f"PROCESS:get_expired_keys_info START")
     # айди по которым будем удалять из outline manager
     id_for_delete_in_manager = []
     # айди по которым будем удалять из базы данных
     id_for_delet_in_bd = []
 
-    for days in [5, 2, 1, 0]:
+    for days in [7, 5, 2, 1, 0]:
 
         if days == 0:
             expired_keys = execute_query(sql_get_expired_keys_2)
@@ -90,7 +93,10 @@ async def get_expired_keys_info():
                     if key_id:
                         id_for_delet_in_bd.append(key_id)
                         # сообщаем об удалении
-                        await send(id, text)
+                        try:
+                            sync_send_message(id, text, "html", key_buttons)
+                        except:
+                            pass
 
                 elif days == 1:
                     # формируем текст собщения
@@ -98,7 +104,10 @@ async def get_expired_keys_info():
                                                                              days=plural_days(days),
                                                                              country=country)
                     # предупреждение за 1 день и предложение продлить ключ
-                    await send_message(id, text, key_buttons)
+                    try:
+                        sync_send_message(id, text, "html", key_buttons)
+                    except:
+                        logger.error(f"Пользователю {id}, сообщение не доставлено, добавил в чс")
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
                                 f"{id_for_delete_in_manager} - outline_keys")
 
@@ -109,23 +118,37 @@ async def get_expired_keys_info():
                                                                              country=country)
 
                     # предупреждение и предложение продлить ключ
-                    await send_message(id, text, key_buttons)
+                    try:
+                        sync_send_message(id, text, "html", key_buttons)
+                    except:
+                        logger.error(f"Пользователю {id}, сообщение не доставлено, добавил в чс")
+                    logger.info(f'Отправлено уведомление о продлении ключа пользователю - {id}')
+
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
                                 f"{id_for_delete_in_manager} - outline_keys")
 
         except Exception as e:
-            logger.error(f"Ошибка при удалении ключей из баз данных ключей {id_for_delet_in_bd} - user_keys и "
-                         f"{id_for_delete_in_manager} - outline_keys, ошибка - {e} ")
+            error = f"Ошибка при удалении ключей из баз данных ключей {id_for_delet_in_bd} " \
+                    f"- user_keys и {id_for_delete_in_manager} - outline_keys, ошибка - {e}"
+            logger.error(error)
+            sync_send_message(err_send, error)
 
     # передаем ключи для удаления
     if id_for_delet_in_bd and id_for_delete_in_manager:
 
-        if await delete_from_manager(id_for_delet_in_bd, id_for_delete_in_manager):
+        if delete_from_manager(id_for_delet_in_bd, id_for_delete_in_manager):
             delete_keys(id_for_delet_in_bd)
         else:
             logger.error(f"Ошибка при удалении ключей в manager(def delete_from_manager) ключи :"
                          f" {id_for_delet_in_bd} - user_keys и "
                          f" {id_for_delete_in_manager} - outline_keys")
-            await bot.send_message(err_send, f"Ошибка при удалении ключей в manager(def delete_from_manager) ключи :"
-                                             f" {id_for_delet_in_bd} - user_keys и "
-                                             f" {id_for_delete_in_manager} - outline_keys")
+            txt = f"Ошибка при удалении ключей в manager(def delete_from_manager) ключи : {id_for_delet_in_bd} - " \
+                  f"user_keys и {id_for_delete_in_manager} - outline_keys"
+            sync_send_message(err_send, txt)
+
+
+if __name__ == '__main__':
+    sleep(86400)
+    while True:
+        get_expired_keys_info()
+        sleep(86400)

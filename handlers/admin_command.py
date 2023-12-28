@@ -1,8 +1,7 @@
 from config import dp, admin_from_config, bot
 from aiogram import types
-
-from keyboards.keyboards import main_menu
-from logic_keys.add_keys import keys_to_send
+from keyboards.keyboards import *
+from logic_keys.add_keys import keys_send
 
 from logger import logger
 
@@ -24,8 +23,9 @@ async def user_info_command(message: types.Message):
         return
 
     try:
-        keys = user_data.get_user_keys(user_id)
-        answer = keys_to_send(*keys)
+        keys = user_data.get_user_keys_info(user_id)
+
+        answer = keys_send(keys)
         info = user_data.get_user_info(user_id)
 
         await message.answer(info, parse_mode='HTML', disable_web_page_preview=True)
@@ -45,7 +45,7 @@ async def user_info_command(message: types.Message):
 
 @dp.message_handler(commands=['balance'], state="*")
 async def balance_command(message: types.Message):
-    keyboards = main_menu()
+    keyboards = main_menu_inline()
     command_parts = message.get_args().split()  # Разбиваем аргументы на части
     admins = get_list_admins_telegram_id()
 
@@ -76,7 +76,7 @@ async def balance_command(message: types.Message):
 
 @dp.message_handler(commands=['admin'], state="*")
 async def add_del_admin_command(message: types.Message):
-    keyboard = main_menu()
+    keyboard = main_menu_inline()
     command_parts = message.get_args().split()  # Разбиваем аргументы на части
 
     admins = get_list_admins_telegram_id()
@@ -178,6 +178,32 @@ async def check_free_keys(message: types.Message):
              f"/balance - пополнить/уменьшить баланс пример (/balance 17 1000 или /balance 17 -1000)\n\n"
 
     await message.reply(answer)
+
+
+
+# @dp.message_handler(commands=['send_promo'], state="*")
+# async def check_time_and_trial_use(message: types.Message):
+#     sql_get_ids = "SELECT telegram_id FROM users WHERE message = 1"
+#     sql_update_message = 'UPDATE users SET message = 0'
+#
+#
+#     telegram_ids = execute_query(sql_get_ids)
+#
+#     print(telegram_ids)
+#
+#     flattened_list = [item[0] for item in telegram_ids]
+#
+#     execute_query(sql_update_message)
+#
+#     text = txt
+#
+#     for id in flattened_list:
+#         try:
+#             await bot.send_message(chat_id=id, text=text, parse_mode="HTML", disable_web_page_preview=True, reply_markup=free_tariff())
+#         except:
+#             pass
+
+
 
 
 # @dp.message_handler(commands=['new_prices'], state="*")

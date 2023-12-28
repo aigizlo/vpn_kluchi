@@ -1,8 +1,8 @@
-from keyboards.keyboards import main_menu
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 from keyboards.admin_buutons import *
-from user_data import get_all_users
+from keyboards.keyboards import *
+from user_data import get_all_users, UserData
 from config import dp, bot
 from states import GetuserInfo
 
@@ -84,8 +84,7 @@ async def sendposts(call: types.CallbackQuery, state: FSMContext):
     photoid = data.get('photoid')
     videoid = data.get('videoid')
     senpostcol = 0
-    user_ids = await get_all_users()
-    print(user_ids)
+    user_ids = get_all_users()
     for user in user_ids:
         post_text = post_text.format_map({
         })
@@ -97,13 +96,12 @@ async def sendposts(call: types.CallbackQuery, state: FSMContext):
                 await bot.send_video(user, video=videoid, caption=post_text,
                                      parse_mode='HTML')
             else:
-                print(user)
                 await bot.send_message(user, disable_web_page_preview=True, text=post_text, parse_mode='HTML')
             senpostcol += 1
         except:
             pass
     await call.message.answer(f'✅ Пост успешно отправлен {senpostcol} пользователям \n',
-                              reply_markup=main_menu())
+                              reply_markup=main_menu_inline())
     await state.finish()
     await state.reset_data()
 
@@ -111,7 +109,7 @@ async def sendposts(call: types.CallbackQuery, state: FSMContext):
 @dp.callback_query_handler(state=GetuserInfo.publish, text='cancelposting')
 async def cancel_post(call: types.CallbackQuery, state: FSMContext):
 
-    keyboard = main_menu()
+    keyboard = main_menu_inline()
     await call.message.answer(f'✅ Данные удалены.\n Начните всё заново : /send_all', reply_markup=keyboard)
     await state.finish()
     await state.reset_data()

@@ -1,24 +1,3 @@
-# import logging
-#
-# # Настраиваем логгер
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-# logger.setLevel(logging.DEBUG)
-# logger.setLevel(logging.ERROR)
-#
-#
-# # Добавляем файловый хендлер логов
-# file_handler = logging.FileHandler('bot.log')
-# logger.addHandler(file_handler)
-#
-# # Добавляем консольный хендлер логов
-# console_handler = logging.StreamHandler()
-# logger.addHandler(console_handler)
-#
-# # Опционально, настройка формата логов
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# file_handler.setFormatter(formatter)
-# console_handler.setFormatter(formatter)
 import logging
 
 # Настраиваем логгер

@@ -2,11 +2,14 @@ import mysql.connector
 from get_conn import create_connection
 import locale
 
-from logger import logger
-from config import err_send, bot
+from telebot_ import sync_send_message
 
-mydb = create_connection()
-mycursor = mydb.cursor()
+from logger import logger
+from config import err_send
+
+
+# mydb = create_connection()
+# mycursor = mydb.cursor()
 
 
 class QueryExecutionError(Exception):
@@ -38,7 +41,7 @@ def get_list_admins_telegram_id():
 
 
 # используем для получения всех tg_id пользователей
-async def get_all_users():
+def get_all_users():
     sql_get_users = "SELECT telegram_id FROM users"
 
     result = execute_query(sql_get_users)
@@ -85,6 +88,17 @@ class UserData:
         except Exception as e:
             logger.error(f"QUERY_ERROR - get_tg_if_use_user_id - {e}")
 
+    def get_user_id_with_key_id(self, key_id):
+        try:
+            sql_get_user_id = " select user_id from user_keys where key_id = %s"
+            result = self.execute_query(sql_get_user_id, (key_id,))
+            if result:
+                return result[0]
+            else:
+                return None
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_user_id_with_key_id - {e}")
+
     def get_user_name(self, user_id):
         try:
             query = "SELECT username FROM users WHERE user_id = %s"
@@ -95,6 +109,18 @@ class UserData:
                 return None
         except Exception as e:
             logger.error(f"QUERY_ERROR - get_user_name - {e}")
+
+    def get_userid_firsname_nickname(self, telegram_id):
+
+        try:
+            query = "SELECT user_id, username, nickname FROM users WHERE telegram_id = %s"
+
+            result = self.execute_query(query, (telegram_id,))
+
+            return result[0]
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_userid_firsname_nickname - {e}")
+            return None
 
     def get_user_info(self, user_id):
         try:
@@ -124,6 +150,15 @@ class UserData:
         except Exception as e:
             logger.error(f"QUERY_ERROR - get_user_info - {e}")
 
+    # получаем сервер_айди который использует юзер
+    def get_current_used_server(self, key_id):
+        try:
+            query = """select server_id from outline_keys where key_id = %s"""
+
+            return self.execute_query(query, (key_id,))
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_current_used_server - {e}")
+
     # user_id по его телеграм айди
     def get_user_id(self, telegram_id):
         try:
@@ -151,7 +186,7 @@ class UserData:
         except Exception as e:
             logger.error(f"QUERY_ERROR - get_user_balance_ops_by_user_id - {e}")
 
-    # получаем текущий баланс c рефералов
+    # получаем текущий баланс с прибыли рефералов
     def get_user_balance_bonus(self, user_id):
         try:
             query = f"""
@@ -167,18 +202,34 @@ class UserData:
             logger.error(f"QUERY_ERROR - get_user_balance_bonus - {e}")
 
     # список ключей юзера
-    def get_user_keys(self, user_id):
+    def get_user_keys_info(self, user_id):
+        try:
+            sql = '''SELECT      u.key_id,     o.server_id,     o.key_value,     u.stop_date FROM     outline_keys o LEFT JOIN user_keys u ON     o.key_id = u.key_id WHERE     u.user_id = %s'''
 
-        locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
-        key_data_amster = self.get_keys(user_id, 1) if self.get_keys(user_id, 1) else None
-        key_data_german = self.get_keys(user_id, 2) if self.get_keys(user_id, 2) else None
-        key_data_kz = self.get_keys(user_id, 3) if self.get_keys(user_id, 3) else None
-        key_data_russia = self.get_keys(user_id, 4) if self.get_keys(user_id, 4) else None
-        key_data_turkey = self.get_keys(user_id, 5) if self.get_keys(user_id, 5) else None
+            return self.execute_query(sql, (user_id,))
 
-        lst = []
-        lst.extend([key_data_amster, key_data_german, key_data_kz, key_data_russia, key_data_turkey])
-        return lst
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_user_keys_info - {e}")
+
+    # берем все key_id  у юзера
+    def get_keys_ids(self, user_id):
+        try:
+            query = """SELECT key_id FROM user_keys WHERE user_id = %s"""
+
+            result = self.execute_query(query, (user_id,))
+            return result
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_keys_ids - {e}")
+
+    # получаем все свободные server_id, которые могут быть использованы
+    def get_used_server_id(self):
+        try:
+            query = """SELECT DISTINCT server_id FROM outline_keys WHERE used = 0"""
+
+            result = self.execute_query(query, )
+            return result
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_used_server_id - {e}")
 
     def get_keys(self, user_id, server_id):
         try:
@@ -191,11 +242,9 @@ class UserData:
             logger.error(f"QUERY_ERROR - get_keys - {e}")
 
     # получаем список имен ключей
-    def get_user_name_keys(self, user_id):
+    def get_key_ids(self, user_id):
         # запрос для получени ключа, имени ключа, даты окончания сервер 1
-        query = """SELECT uk.name FROM outline_keys ok 
-                JOIN user_keys uk ON ok.key_id = uk.key_id 
-                WHERE uk.user_id = %s"""
+        query = """SELECT key_id FROM user_keys WHERE user_id = %s"""
 
         return self.execute_query(query, (user_id,))
 
@@ -226,7 +275,7 @@ class UserData:
         except Exception as e:
             logger.error(f"QUERY_ERROR - get_referrer_telegram_id - {e}")
 
-    # использует ли юзер бесплатный тариф,поиск по юзер_айди 1 0 или NONE
+    # использует ли юзер бесплатный тариф, поиск по юзер_айди 1 0 или NONE
     def free_tariff(self, user_id):
         query = "SELECT free_tariff FROM users WHERE user_id = %s"
         try:
@@ -239,7 +288,20 @@ class UserData:
             logger.error(f"QUERY_ERROR - free_tariff - {e}")
             return None
 
-    # использует ли юзер бесплатный тариф,поиск по telegram_id
+    def get_users_not_use_trial(self):
+        sql = "SELECT telegram_id FROM users WHERE free_tariff = 0"
+        try:
+            result = self.execute_query(sql)
+            list_telegram_id = []
+
+            for tg in result:
+                list_telegram_id.append(tg[0])
+            return list_telegram_id
+        except Exception as e:
+            logger.error(f"QUERY_ERROR - get_users_not_use_trial - {e}")
+            return None
+
+    # использует ли юзер бесплатный тариф, поиск по telegram_id
     def free_tariff_tg(self, telegram_id):
         query = "SELECT free_tariff FROM users WHERE telegram_id = %s"
         try:
@@ -277,7 +339,7 @@ class UserData:
     def count_free_keys(self):
         query = """SELECT server_id, COUNT(*) AS count 
                                 FROM outline_keys
-                                WHERE used = 0 AND server_id IN (1, 2, 3, 4, 5)
+                                WHERE used = 0 AND server_id IN (1, 2, 6, 4, 5)
                                 GROUP BY server_id"""
         try:
             result = self.execute_query(query)
@@ -312,7 +374,7 @@ def check_user_in_system(telegram_id):
         logger.error(f"ERROR:check_user_in_system - Ошибка базы данных: {e}")
 
 
-async def if_new_user(telegram_id, username, referer_user_id):
+def if_new_user(telegram_id, username, referer_user_id, last_name, nickname, language, premium):
     try:
         # Создаем соединение с базой данных
         with create_connection() as mydb:
@@ -340,16 +402,22 @@ async def if_new_user(telegram_id, username, referer_user_id):
                         referer_user_id = None
 
                     # Добавляем нового пользователя с указанным refer_id
-                    sql_insert_user = "INSERT INTO users (username, telegram_id, referer_id) VALUES (%s, %s, %s)"
-                    mycursor.execute(sql_insert_user, (username, telegram_id, referer_user_id,))
+                    sql_insert_user = "INSERT INTO users " \
+                                      "(username, telegram_id, referer_id, lastname, nickname, premium, language)" \
+                                      " VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                    mycursor.execute(sql_insert_user, (username, telegram_id, referer_user_id,
+                                                       last_name, nickname, premium, language))
                     logger.info(f"NEW USER : добавлен в базу {telegram_id}, {username}, referer - {referer_user_id}")
                 else:
                     # Добавляем нового пользователя без refer_id
-                    sql_insert_user = "INSERT INTO users (username, telegram_id) VALUES (%s, %s)"
-                    mycursor.execute(sql_insert_user, (username, telegram_id,))
+                    sql_insert_user = "INSERT INTO users " \
+                                      "(username, telegram_id, lastname, nickname, premium, language)" \
+                                      " VALUES (%s, %s, %s, %s, %s, %s)"
+                    mycursor.execute(sql_insert_user, (username, telegram_id, last_name,
+                                                       nickname, premium, language))
                     logger.info(f"NEW USER : добавлен в базу {telegram_id}, {username} - referer - None")
                 return True
     except Exception as e:
         logger.error(f"ERROR:if_new_user - Ошибка базы данных: {e}")
-        await bot.send_message(err_send, f"ERROR:if_new_user - Ошибка базы данных: {e}")
+        sync_send_message(err_send, f"ERROR:if_new_user - Ошибка базы данных: {e}")
         return None

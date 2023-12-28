@@ -1,42 +1,17 @@
-import logging
-
 import outline_api
 
 from get_conn import create_connection
 
 from config import *
 
-from outline_api import Manager  # Импорт вашего класса Manager
-
+from telebot_ import sync_send_message
 from user_data import execute_query
 
 from logger import logger
 
-mydb = create_connection()
-
-cursor = mydb.cursor()
-
-# Конфигурация логгера
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-manager_amsterdam = Manager(apiurl=apiurl_amsterdam, apicrt=apicrt_amsterdam)
-
-manager_germany = Manager(apiurl=apiurl_germany, apicrt=apicrt_germany)
-
-manager_kz = Manager(apiurl=apiurl_kz, apicrt=apicrt_kz)
-
-manager_spb = Manager(apiurl=apiurl_spb, apicrt=apicrt_spb)
-
-manager_turkey = Manager(apiurl=apiurl_turkey, apicrt=apicrt_turkey)
-
-managers = {
-    1: manager_amsterdam,
-    2: manager_germany,
-    3: manager_kz,
-    4: manager_spb,
-    5: manager_turkey
-}
+# mydb = create_connection()
+#
+# cursor = mydb.cursor()
 
 query_templates = {
     'delete_user_keys': """DELETE FROM user_keys 
@@ -82,20 +57,20 @@ def delete_keys(key_ids):  # key_ids удаляем из базы и
 def get_server_id(key_id):  # ищем server_id по key_id
     try:
         result = execute_query(query_templates['search_server_id_with_key_id'], (key_id,))
-        return result[0][0]
         logger.info(f"server_id найден {result[0][0]}")
+        return result[0][0]
     except Exception as e:
         logger.error(f"Ошибка при поиске сервера , {e}")
         return None
 
 
-async def delete_from_manager(key_ids, outline_keys):
+def delete_from_manager(key_ids, outline_keys):
     try:
         success = True  # Флаг для отслеживания успеха удаления всех ключей
         for key_id, outline_key in zip(key_ids, outline_keys):
             server_id = get_server_id(key_id)
 
-            print(server_id)
+            # print(server_id)
             if server_id:
                 manager = managers.get(server_id)
                 try:
@@ -103,10 +78,9 @@ async def delete_from_manager(key_ids, outline_keys):
                     logger.info(f"DELETE_KEYS_FROM_MANAGER - ключ - {key_id} удален успешно из менеджера")
                 except outline_api.errors.DoesNotExistError as dne_error:
                     # Обработка исключения, когда ключ не существует
-                    await bot.send_message(err_send,
-                        f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка, ключ {key_id} не существует: {dne_error}")
-                    logger.error(
-                        f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка, ключ {key_id} не существует: {dne_error}")
+                    error = f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка, ключ {key_id} не существует: {dne_error}"
+                    sync_send_message(err_send, error)
+                    logger.error(error)
                 except Exception as e:
                     # Обработка других исключений
                     logger.error(
@@ -117,14 +91,12 @@ async def delete_from_manager(key_ids, outline_keys):
                 logger.error(f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка, сервер для ключа {key_id} не найден")
                 success = False  # Устанавливаем флаг в False в случае отсутствия сервера
 
-        return success  # Возвращаем флаг успеха после завершения цикла
+        return success
 
     except Exception as e:
         # Обработка других исключений
-        logger.error(
-            f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка при удалении ключей {outline_keys} из outline "
-            f"manager, ERROR - {e}")
-        await bot.send_message(err_send,
-            f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка при удалении ключей {outline_keys} из outline "
-            f"manager, ERROR - {e}")
+        error = f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка при удалении ключей " \
+                f"{outline_keys} из outline manager, ERROR - {e}"
+        logger.error(error)
+        sync_send_message(err_send, error)
         return False

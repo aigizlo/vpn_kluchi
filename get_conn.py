@@ -12,7 +12,7 @@ def create_connection():
             database=database,
             autocommit=True
         )
-        logger.info('DB_CONNECT_SUCCESS')
+        # logger.info('DB_CONNECT_SUCCESS')
         return conn  # Возвращаем объект соединения
     except mysql.connector.errors.InterfaceError as err:
         logger.error(f'DB_CONNECT_ERROR: %s %s, ошибка - {err}')
