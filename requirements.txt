@@ -54,3 +54,5 @@ urllib3==1.26.15
 virtualenv==20.24.5
 Werkzeug==2.3.7
 yarl==1.9.1
+APScheduler~=3.10.4
+telegram~=0.0.1
