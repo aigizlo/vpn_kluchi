@@ -20,8 +20,11 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
         await bot.send_message(chat_id=telegram_id, text="Что бы начать работу с ботом используйте команду /start")
         return
 
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                             message_id=callback_query.message.message_id)
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                 message_id=callback_query.message.chat.id)
+
+
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
     user_id = user_info[0]
 
@@ -101,7 +104,9 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
         logger.info(f"(choosing_new_location) Выбрана новая локация {location}, user - {user_info}")
 
-        await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.chat.id)
 
         new_key = exchange_server(key_id, selected_server)
 
@@ -136,7 +141,9 @@ async def select_key_for_exchange(callback_query: types.CallbackQuery, state: FS
     try:
         key_id = selected_key
 
-        await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.chat.id)
 
         await state.update_data(key_id=key_id)
 

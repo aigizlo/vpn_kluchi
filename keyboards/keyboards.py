@@ -83,7 +83,7 @@ def plus_balance():
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("✅Подписаться на канал", url="https://t.me/off_radar"),
+        types.InlineKeyboardButton("✅Подписаться на канал", url="https://t.me/corbots"),
         types.InlineKeyboardButton("🔁Проверить подписку", callback_data="subscribe_check"),
 
     )

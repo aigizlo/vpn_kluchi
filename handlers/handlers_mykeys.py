@@ -44,7 +44,8 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
         await bot.send_message(chat_id=telegram_id, text="Что бы начать работу с ботом используйте команду /start")
         return
 
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
                              message_id=callback_query.message.message_id)
 
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
@@ -94,8 +95,9 @@ async def prolong_key_command(callback_query: types.CallbackQuery, state: FSMCon
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
 
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                             message_id=callback_query.message.message_id)
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                 message_id=callback_query.message.message_id)
 
     # ищем юзер_айди пользователя
     try:
@@ -144,7 +146,9 @@ async def process_select_key(callback_query: types.CallbackQuery, state: FSMCont
         logger.info(f"Выбран ключ для продления - {selected_key}, user - {user_info}")
 
         # удаляем инлайн клавиатуру по выбору ключей
-        await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
 
         # выводим клавиатуру, где юзер выбираем период продления
         keyboard = choice_renewal_period()
@@ -190,7 +194,9 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
         user_id = user_info[0]
 
         # удаляем клавиатуру с выбором тарифа для продления
-        await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
 
         await state.set_state(MyStates.pay_from_balance)
 
@@ -222,7 +228,8 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
 
 
             # Удаление сообщения после задержки
-            await bot.delete_message(telegram_id, message.message_id)
+            if message.message_id:
+                await bot.delete_message(telegram_id, message.message_id)
 
     except Exception as e:
         logger.error(f"ERROR:Ошибка при продлении ключа, user - {user_info}, ошибка - {e}")

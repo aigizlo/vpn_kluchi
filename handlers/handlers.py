@@ -69,8 +69,10 @@ server_id_country = {
 @dp.callback_query_handler(lambda c: c.data == "get_keys", state="*")
 async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.message.chat.id
-    await bot.delete_message(chat_id=telegram_id,
-                             message_id=callback_query.message.message_id)
+
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                 message_id=callback_query.message.message_id)
 
     if not check_user_in_system(callback_query.message.chat.id):
         await bot.send_message(chat_id=telegram_id,
@@ -114,8 +116,9 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 
     telegram_id = callback_query.message.chat.id
 
-    await bot.delete_message(chat_id=telegram_id,
-                             message_id=callback_query.message.message_id)
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                 message_id=telegram_id)
 
     price = callback_query.data.split(':')[1]  # получаем цену
 
@@ -152,8 +155,9 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 # inline кнопка "Отмена"
 @dp.callback_query_handler(lambda c: c.data == "go_back", state="*")
 async def process_callback_go_back(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                             message_id=callback_query.message.message_id)
+    if callback_query.message.message_id:
+        await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                 message_id=callback_query.message.chat.id)
 
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
@@ -202,15 +206,17 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
                                    text=answer, reply_markup=main_menu_inline(),
                                    parse_mode="HTML", disable_web_page_preview=True)
 
-            await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                     message_id=callback_query.message.message_id)
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.chat.id)
 
 
 
 
         else:
-            await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                     message_id=callback_query.message.message_id)
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.chat.id)
     else:
         await bot.send_message(chat_id=callback_query.message.chat.id,
                                text=answer,
