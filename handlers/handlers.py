@@ -157,7 +157,7 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 async def process_callback_go_back(callback_query: types.CallbackQuery):
     if callback_query.message.message_id:
         await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=callback_query.message.chat.id)
+                                 message_id=callback_query.message.message_id)
 
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
