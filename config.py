@@ -6,19 +6,19 @@ from outline_api import (
 
     Manager)
 
-# проверка на подписку в канал (на сервере)
-#tg_channel = "@corbots"
+#проверка на подписку в канал (на сервере)
+tg_channel = "@corbots"
 
 
 # проверка на подписку в канал (на сервере)
-tg_channel = "@off_radar"
+# tg_channel = "@off_radar"
 # локально
-bot_name = 'vpn_offradar_bot'
-token = '6820291522:AAHbWTF-zSlL3bIdDqmjqSajYBsGbueRlQs'
+# bot_name = 'vpn_offradar_bot'
+# token = '6820291522:AAHbWTF-zSlL3bIdDqmjqSajYBsGbueRlQs'
 
 # на сервере
-# bot_name = 'vpnklyuchi_bot'
-# token = '6509663632:AAGG38zVCvSe89tb46ZlhhQiZx53ADABHIQ'
+bot_name = 'vpnklyuchi_bot'
+token = '6509663632:AAGG38zVCvSe89tb46ZlhhQiZx53ADABHIQ'
 
 support = "@off_radar_support"
 
@@ -53,16 +53,16 @@ shop_id_fropay = '3904'
 
 
 # данные для подлкючения к бд в локалке
-host = "localhost"
-user = "aigiz"
-password = "Imaroot1"
-database = "outline"
-
-# # данные для подлкючения к бд на сервере
 # host = "localhost"
 # user = "aigiz"
-# password = "aikido3103"
-# database = "outline_vpn"
+# password = "Imaroot1"
+# database = "outline"
+
+# данные для подлкючения к бд на сервере
+host = "localhost"
+user = "admin"
+password = "outline_admin"
+database = "outline"
 
 
 
