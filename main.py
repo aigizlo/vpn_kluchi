@@ -101,8 +101,12 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
     user_id = User_Data.get_user_id(telegram_id)
 
     # удаляем капчу
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                             message_id=callback_query.message.message_id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
     logger.info(f"Капча пройдена user_id - {user_id}")
 
     # kb_free_tariff = free_tariff()

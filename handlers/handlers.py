@@ -109,7 +109,6 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('payment_method:'),
                            state=MyStates.payment_method)
 async def process_callback_payment_method(callback_query: types.CallbackQuery, state='*'):
-
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
     user_id = user_info[0]
@@ -118,7 +117,7 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 
     if callback_query.message.message_id:
         await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=telegram_id)
+                                 message_id=callback_query.message.message_id)
 
     price = callback_query.data.split(':')[1]  # получаем цену
 
@@ -141,16 +140,18 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 
     with open('images/bill.jpeg', 'rb') as photo:
         message = await bot.send_photo(chat_id=telegram_id,
-                             photo=photo,
-                             caption=answer,
-                             reply_markup=keyboard)
-
-        print(message)
+                                       photo=photo,
+                                       caption=answer,
+                                       reply_markup=keyboard)
 
         # Асинхронная задержка перед удалением сообщения
         await asyncio.sleep(60)
         # Удаление сообщения после задержки
-        await bot.delete_message(telegram_id, message.message.message_id)
+        # await bot.delete_message(telegram_id, message.message.message_id)
+        # if callback_query.message.message_id:
+        #     await bot.delete_message(chat_id=callback_query.message.chat.id,
+        #                              message_id=callback_query.message.message_id)
+
 
 # inline кнопка "Отмена"
 @dp.callback_query_handler(lambda c: c.data == "go_back", state="*")
@@ -173,7 +174,6 @@ async def process_callback_go_back(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data == "subscribe_check", state="*")
 async def subscribe_no_thanks(callback_query: types.CallbackQuery):
-
     User_Data = UserData()
     telegram_id = callback_query.from_user.id
 
@@ -235,7 +235,6 @@ async def check_subscription(callback_query: types.CallbackQuery):
 ✅ Подпишитесь на канал и получите 3 дня пользования ключом БЕСПЛАТНО! 
 """
 
-
     try:
         User_Data = UserData()
 
@@ -269,7 +268,8 @@ async def check_subscription(callback_query: types.CallbackQuery):
         #                            reply_markup=subscribe_keyboard)
     except Exception as e:
         logger.error(f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
-        await bot.send_message(err_send, f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
+        await bot.send_message(err_send,
+                               f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
 
 
 # @dp.callback_query_handler(lambda c: c.data == "", state="*")

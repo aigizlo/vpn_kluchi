@@ -1,3 +1,4 @@
+import aiogram
 from aiogram.dispatcher import FSMContext
 from logger import logger
 # from handlers import server_id_country
@@ -20,9 +21,12 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
         await bot.send_message(chat_id=telegram_id, text="Что бы начать работу с ботом используйте команду /start")
         return
 
-    if callback_query.message.message_id:
-        await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=callback_query.message.chat.id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
 
 
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
@@ -104,9 +108,12 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
         logger.info(f"(choosing_new_location) Выбрана новая локация {location}, user - {user_info}")
 
-        if callback_query.message.message_id:
-            await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                     message_id=callback_query.message.chat.id)
+        try:
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.message_id)
+        except aiogram.utils.exceptions.MessageCantBeDeleted:
+            logger.info("Сообщение не может быть удалено.")
 
         new_key = exchange_server(key_id, selected_server)
 
@@ -132,8 +139,6 @@ async def select_key_for_exchange(callback_query: types.CallbackQuery, state: FS
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
 
-    user_id = user_info[0]
-
     selected_key = callback_query.data.split(":")[1]
 
     logger.info(f"(select_key_for_exchange)Выбран ключ - {selected_key} для его смены, user - {user_info}")
@@ -141,10 +146,12 @@ async def select_key_for_exchange(callback_query: types.CallbackQuery, state: FS
     try:
         key_id = selected_key
 
-        if callback_query.message.message_id:
-            await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                     message_id=callback_query.message.chat.id)
-
+        try:
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.message_id)
+        except aiogram.utils.exceptions.MessageCantBeDeleted:
+            logger.info("Сообщение не может быть удалено.")
         await state.update_data(key_id=key_id)
 
         servers = user_data.get_used_server_id()
