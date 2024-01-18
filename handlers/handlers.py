@@ -7,14 +7,12 @@ from logger import logger
 
 import asyncio
 
-from config import dp, bot, err_send, one_month, three_month, one_year, secret_key, tg_channel
-from balance import pay_from_personal_balance, add_referral_bonus, creating_payment
+from config import dp, bot, err_send, secret_key, tg_channel
+from balance import creating_payment
 from keyboards.keyboards import *
-from logic_keys.add_keys import add_keys, keys_send, add_free_keys
-from logic_keys.renewal_keys import renewal_keys
+from logic_keys.add_keys import add_free_keys
 from states import MyStates
 from user_data import UserData, check_user_in_system
-from balance import money_back
 
 user_data = UserData()
 amount_to_month = {
@@ -41,29 +39,12 @@ amount_to_days = {
 
 
 country_server_id = {
-    '🇱🇺Нидерланды – Амстердам': 1,
-    '🇩🇪Германия – Франкфурт': 2,
-    '🇰🇿Казахстан – Астана': 3,
-    '🇷🇺Россия – Санкт-Петербург': 4,
-    '🇹🇷Турция – Стамбул': 5,
-    '🇺🇸Америка – Лос Анджелес': 6}
-
-keyboards_from_server_id = {
-    1: 'amsterdam',
-    2: 'germany',
-    3: 'kz',
-    4: 'russia',
-    5: 'turkey',
-    6: 'usa',
-}
+    '🇩🇪Германия – Франкфурт': 1,
+    '🇺🇸Америка – Лос Анджелес': 2}
 
 server_id_country = {
-    1: '🇱🇺Нидерланды Амстердам',
-    2: '🇩🇪Германия Франкфурт',
-    3: '🇰🇿Казахстан Астана',
-    4: '🇷🇺Россия',
-    5: '🇹🇷Турция Стамбул',
-    6: '🇺🇸Америка Лос Анджелес'
+    1: '🇩🇪Германия Франкфурт',
+    2: '🇺🇸Америка Лос Анджелес'
 }
 
 
@@ -108,9 +89,6 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
                              caption=answer,
                              reply_markup=keyboard)
 
-    # await bot.send_message(chat_id=callback_query.message.chat.id, text=answer, reply_markup=keyboard)
-
-
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('payment_method:'),
                            state=MyStates.payment_method)
 async def process_callback_payment_method(callback_query: types.CallbackQuery, state='*'):
@@ -151,14 +129,6 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
                                        photo=photo,
                                        caption=answer,
                                        reply_markup=keyboard)
-
-        # Асинхронная задержка перед удалением сообщения
-        await asyncio.sleep(60)
-        # Удаление сообщения после задержки
-        # await bot.delete_message(telegram_id, message.message.message_id)
-        # if callback_query.message.message_id:
-        #     await bot.delete_message(chat_id=callback_query.message.chat.id,
-        #                              message_id=callback_query.message.message_id)
 
 
 # inline кнопка "Отмена"

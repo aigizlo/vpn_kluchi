@@ -12,21 +12,16 @@ from handlers.handlers import get_key_command, my_info, process_callback_payment
 from handlers.handlers_change_location import change_location_handlers
 from handlers.send_all import *
 from handlers.admin_command import user_info_command
-# from handlers.handlers_referal_program import process_partners_command
-# from handlers.handlers_balance import balance_command, add_balance_comand, get_amount_for_payment, get_amount_for_payment_2
-from text import start_text, promotion_text, not_bot_text
+from text import not_bot_text, instruction
 from handlers.handlers_mykeys import *
 from aiogram import types
 from logger import logger
 from user_data import if_new_user
 from keyboards.keyboards import capcha
-from get_users import sender_promo_txt
 
 User_Data = UserData()
 my_keys
 get_key_command
-# add_balance_comand
-# balance_command
 user_info_command
 show_rassilka
 get_posttext
@@ -113,10 +108,12 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
     # kb_free_tariff = free_tariff()
 
     # отправялем пиветственный текст
-    await bot.send_message(chat_id=telegram_id, text=start_text,
-                        parse_mode="HTML",
-                        disable_web_page_preview=True,
-                        reply_markup=main_menu_inline())
+    with open('images/menu.jpeg', 'rb') as photo:
+        await bot.send_photo(chat_id=callback_query.message.chat.id,
+                             photo=photo,
+                             caption=instruction,
+                             parse_mode="HTML",
+                             reply_markup=main_menu_inline())
 
     # предлагаем пользователю тестовый период
     # await bot.send_message(chat_id=telegram_id,

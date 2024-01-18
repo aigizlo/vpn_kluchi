@@ -109,7 +109,7 @@ def get_expired_keys_info():
                         id_for_delet_in_bd.append(key_id)
                         # сообщаем об удалении
                         try:
-                            with open('images/renewal.jpeg', 'rb') as photo:
+                            with open('images/key_delete.jpeg', 'rb') as photo:
                                 sync_send_photo(telegram_id, photo, text, "HTML", main_menu_telebot())
                                 logger.info(
                                     f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")

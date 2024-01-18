@@ -82,9 +82,9 @@ def buy_key(user_id, amount):
 def notifi_user(user_id, key_id):
     telegram_id = user_data.get_tg_if_use_user_id(user_id)
 
-    answer = f"Продления ключа \"<b>Ключ № {key_id}</b>\" прошло успешно👌!\nСпасибо, что выбрали <b>«Off Radar»!!</b> 😇"
+    answer = f"✅ Вы успешно продлили \"<b>Ключ № {key_id}</b>\" "
 
-    with open('images/key.jpeg', 'rb') as photo:
+    with open('images/renewal_ok.jpeg', 'rb') as photo:
         sync_send_photo(telegram_id, photo, answer, "HTML", main_menu_telebot())
 
 
