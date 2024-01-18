@@ -1,8 +1,6 @@
 from time import sleep
-from telebot_ import sync_send_message, generate_prolong_button
-from telegram.error import TelegramError
+from telebot_ import sync_send_message, generate_prolong_button, sync_send_photo, main_menu_telebot
 from logger import logger
-
 from config import err_send
 
 from logic_keys.delete_keys import delete_keys, delete_from_manager
@@ -11,7 +9,7 @@ from user_data import execute_query
 
 # запрос для получения ключей которые скоро истекут
 sql_get_expired_keys = """
-    SELECT u.telegram_id, uk.key_id, uk.name, ok.key_value, ok.outline_key_id, s.country
+    SELECT u.telegram_id, uk.key_id, ok.key_value, ok.outline_key_id, s.country
     FROM user_keys uk     JOIN users u ON u.user_id = uk.user_id
     JOIN outline_keys ok ON ok.key_id = uk.key_id
     JOIN servers s ON s.server_id = ok.server_id
@@ -20,24 +18,41 @@ sql_get_expired_keys = """
 
 # запрос для уже истекших ключей
 sql_get_expired_keys_2 = """
-    SELECT u.telegram_id, uk.key_id, uk.name, ok.key_value, ok.outline_key_id, s.country
+    SELECT u.telegram_id, uk.key_id, ok.key_value, ok.outline_key_id, s.country
     FROM user_keys uk     JOIN users u ON u.user_id = uk.user_id
     JOIN outline_keys ok ON ok.key_id = uk.key_id
     JOIN servers s ON s.server_id = ok.server_id
     WHERE stop_date < NOW();
 """
 
+# # шаблоны для отправки сообщений
+# message_templates = {
+#     'KEY_EXPIRED': "Срок вашего ключа '<b>{name}</b>', страна '<i>{country}</i>' истек, и он был удален",
+#     'KEY_EXPIRES_IN_X_DAYS': "У вас осталось {days} до конца действия ключа '<b>{name}</b>', "
+#                              "страна '<i>{country}</i>'. Продлите "
+#                              "действие вашего ключа, "
+#                              "чтобы избежать его удаления",
+#     'KEY_EXPIRES_IN_1_DAYS': "У вас остался {days} до конца действия ключа '<b>{name}</b>', "
+#                              "страна '<i>{country}</i>'. Продлите "
+#                              "действие вашего ключа, "
+#                              "чтобы избежать его удаления",
+# }
 
 # шаблоны для отправки сообщений
 message_templates = {
-    'KEY_EXPIRED': "Срок вашего ключа '<b>{name}</b>', страна '<i>{country}</i>' истек, и он был удален",
-    'KEY_EXPIRES_IN_X_DAYS': "У вас осталось {days} до конца действия ключа '<b>{name}</b>', "
-                             "страна '<i>{country}</i>'. Продлите "
-                             "действие вашего ключа, "
+    'KEY_EXPIRED': "😔 Ключ закончился!\n\n"
+                   "- <b>Ключ № {name}</b>\n"
+                   "📍Локация '<i>{country}</i>'\n\n"
+                   "✅ Купите новый ключ, если хотите продолжать пользоваться",
+    'KEY_EXPIRES_IN_X_DAYS': "⏳ Осталось {days} до конца действия ключа:\n\n"
+                             "- <b>Ключ № {name}</b>\n"
+                             "📍Локация '<i>{country}</i>'\n\n"
+                             "✅ Продлите действие вашего ключа, "
                              "чтобы избежать его удаления",
-    'KEY_EXPIRES_IN_1_DAYS': "У вас остался {days} до конца действия ключа '<b>{name}</b>', "
-                             "страна '<i>{country}</i>'. Продлите "
-                             "действие вашего ключа, "
+    'KEY_EXPIRES_IN_1_DAYS': "⏳ Остался {days} до конца действия ключа:\n\n"
+                             "- <b>Ключ № {name}</b>\n"
+                             "📍Локация '<i>{country}</i>'\n\n"
+                             "✅ Продлите действие вашего ключа,"
                              "чтобы избежать его удаления",
 }
 
@@ -63,7 +78,7 @@ def get_expired_keys_info():
     # айди по которым будем удалять из базы данных
     id_for_delet_in_bd = []
 
-    for days in [7, 5, 2, 1, 0]:
+    for days in [3, 1, 0]:
 
         if days == 0:
             expired_keys = execute_query(sql_get_expired_keys_2)
@@ -75,17 +90,17 @@ def get_expired_keys_info():
             for key in expired_keys:
                 # распределяем данные по переменным
                 # telegram_id
-                id = key[0]
+                telegram_id = key[0]
                 key_id = key[1]
-                name = key[2]
-                outline_key_id = key[4]
-                country = key[5]
+                # name = key[2]
+                outline_key_id = key[3]
+                country = key[4]
 
-                key_buttons = generate_prolong_button(name)
+                key_buttons = generate_prolong_button(key_id)
 
                 # формируем текст собщения
                 if days == 0:
-                    text = message_templates['KEY_EXPIRED'].format(name=name,
+                    text = message_templates['KEY_EXPIRED'].format(name=key_id,
                                                                    country=country)
                     # отправляем просроченные на удаления
                     if outline_key_id:
@@ -94,35 +109,44 @@ def get_expired_keys_info():
                         id_for_delet_in_bd.append(key_id)
                         # сообщаем об удалении
                         try:
-                            sync_send_message(id, text, "html", key_buttons)
+                            with open('images/renewal.jpeg', 'rb') as photo:
+                                sync_send_photo(telegram_id, photo, text, "HTML", main_menu_telebot())
+                                logger.info(
+                                    f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
                         except:
-                            pass
+                            logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
+
 
                 elif days == 1:
                     # формируем текст собщения
-                    text = message_templates['KEY_EXPIRES_IN_1_DAYS'].format(name=name,
+                    text = message_templates['KEY_EXPIRES_IN_1_DAYS'].format(name=key_id,
                                                                              days=plural_days(days),
                                                                              country=country)
                     # предупреждение за 1 день и предложение продлить ключ
                     try:
-                        sync_send_message(id, text, "html", key_buttons)
+                        with open('images/renewal.jpeg', 'rb') as photo:
+                            sync_send_photo(telegram_id, photo, text, "HTML", key_buttons)
+                            logger.info(f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
                     except:
-                        logger.error(f"Пользователю {id}, сообщение не доставлено, добавил в чс")
+                        logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
                                 f"{id_for_delete_in_manager} - outline_keys")
 
                 else:
 
-                    text = message_templates['KEY_EXPIRES_IN_X_DAYS'].format(name=name,
+                    text = message_templates['KEY_EXPIRES_IN_X_DAYS'].format(name=key_id,
                                                                              days=plural_days(days),
                                                                              country=country)
 
                     # предупреждение и предложение продлить ключ
                     try:
-                        sync_send_message(id, text, "html", key_buttons)
+                        with open('images/renewal.jpeg', 'rb') as photo:
+                            sync_send_photo(telegram_id, photo, text, "HTML", key_buttons)
+                            logger.info(
+                                f"Пользователю {telegram_id} отправлено сообщение об истечении срока действия ключа {key_id}")
                     except:
-                        logger.error(f"Пользователю {id}, сообщение не доставлено, добавил в чс")
-                    logger.info(f'Отправлено уведомление о продлении ключа пользователю - {id}')
+                        logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
+                    logger.info(f'Отправлено уведомление о продлении ключа пользователю - {telegram_id}')
 
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
                                 f"{id_for_delete_in_manager} - outline_keys")
@@ -148,7 +172,7 @@ def get_expired_keys_info():
 
 
 if __name__ == '__main__':
-    sleep(86400)
+    sleep(10)
     while True:
         get_expired_keys_info()
         sleep(86400)

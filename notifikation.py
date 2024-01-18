@@ -34,43 +34,6 @@ def get_user_id_and_amount_from_bills(pay_id):
         return False
 
 
-# def get_user_id_and_amount_from_bills_alex(pay_id):
-#     sql_user_id_amount = "SELECT user_id, amount FROM bills WHERE pay_id = %s"
-#     try:
-#         with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
-#             mycursor.execute(sql_user_id_amount, (pay_id,))
-#             result = mycursor.fetchone()
-#             return result
-#     except Exception as e:
-#         logger.error(f"ERROR - get_user_id_from_bills, {e}")
-#         return False
-#
-#
-# def add_balance(pay_id, status):
-#     User_Data = UserData()
-#
-#     sql_add_balance = "INSERT INTO user_balance_ops (user_id, optype, amount)  VALUES (%s, 'addmoney', %s)"
-#
-#     user_id_amount = get_user_id_and_amount_from_bills(pay_id)
-#
-#     try:
-#         with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
-#             if not set_bill_payed(pay_id, status):
-#                 return False
-#             if not user_id_amount:
-#                 return False
-#             mycursor.execute(sql_add_balance, user_id_amount)
-#             telegram_id = User_Data.get_tg_if_use_user_id(user_id_amount[0])
-#
-#             sync_send_message(telegram_id, f"Ваш баланс пополнен на сумму {user_id_amount[1]} рублей.")
-#             logger.info(f"add_balance - SUCSSESS: Начислен баланс пользователю "
-#                         f"{user_id_amount[0]}, {user_id_amount[1]} рублей по платежу {pay_id}")
-#
-#     except Exception as e:
-#         logger.error(f"add_balance - FAILED: pay_id - {pay_id}, status - {status}, ERROR - {e}")
-#         return False
-
-
 def update_pay_id_status(pay_id, status):
     with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
         try:
@@ -116,19 +79,16 @@ def buy_key(user_id, amount):
 
 
 # обновляем статус платежа на оплаченый
-
 def notifi_user(user_id, key_id):
     telegram_id = user_data.get_tg_if_use_user_id(user_id)
 
     answer = f"Продления ключа \"<b>Ключ № {key_id}</b>\" прошло успешно👌!\nСпасибо, что выбрали <b>«Off Radar»!!</b> 😇"
 
-    logger.info(f"{telegram_id}")
-
     with open('images/key.jpeg', 'rb') as photo:
         sync_send_photo(telegram_id, photo, answer, "HTML", main_menu_telebot())
 
 
-@app.route('/notification_alex', methods=['POST'])
+@app.route('/notification_corbots', methods=['POST'])
 def payment_notification():
     # Получаем параметры из POST-запроса
     data = request.form.to_dict()
@@ -179,41 +139,41 @@ def payment_notification():
 
     return 'OK', 200
 
-
-@app.route('/notifi_payment_fropay_den', methods=['POST'])
-def payment_status():
-    from config import shop_id_fropay, secret_key_fropay
-    try:
-        data = request.form
-        pay = data['pay']  # Номер платежа в системе FROPAY
-        pay_id = data['label']  # ID платежа в вашей системе
-        amount = data['amount']  # Сумма платежа в формате 100.00
-        hashsign = data['hash']  # Зашифрованная строка методом sha256
-
-        # Генерируем хеш для проверки
-        sign = hashlib.sha256((shop_id_fropay + amount + secret_key_fropay + pay_id + pay).encode('utf-8')).hexdigest()
-
-        if sign != hashsign:
-            return 'Неверный hash', 400  # Ошибка при неверном хеше
-
-        key_id, user_id = searche_key_id_user_id(pay_id)
-
-        update_pay_id_status(pay_id, 1)
-
-        if not key_id:
-            buy_key(user_id, amount)
-        else:
-            key_id = renewal_keys(int(key_id), int(amount))
-            if key_id:
-                notifi_user(user_id, key_id)
-
-        logger.info(f"Поступили данные fro_pay, {amount}, pay_id -{pay_id}, {pay}")
-        sync_send_message(admin, f"Поступил платеж на сумму {amount} рублей")
-
-        return 'OK', 200
-
-    except Exception as e:
-        return str(e), 400  # Ошибка при обработке запроса
+#
+# @app.route('/notifi_payment_fropay_den', methods=['POST'])
+# def payment_status():
+#     from config import shop_id_fropay, secret_key_fropay
+#     try:
+#         data = request.form
+#         pay = data['pay']  # Номер платежа в системе FROPAY
+#         pay_id = data['label']  # ID платежа в вашей системе
+#         amount = data['amount']  # Сумма платежа в формате 100.00
+#         hashsign = data['hash']  # Зашифрованная строка методом sha256
+#
+#         # Генерируем хеш для проверки
+#         sign = hashlib.sha256((shop_id_fropay + amount + secret_key_fropay + pay_id + pay).encode('utf-8')).hexdigest()
+#
+#         if sign != hashsign:
+#             return 'Неверный hash', 400  # Ошибка при неверном хеше
+#
+#         key_id, user_id = searche_key_id_user_id(pay_id)
+#
+#         update_pay_id_status(pay_id, 1)
+#
+#         if not key_id:
+#             buy_key(user_id, amount)
+#         else:
+#             key_id = renewal_keys(int(key_id), int(amount))
+#             if key_id:
+#                 notifi_user(user_id, key_id)
+#
+#         logger.info(f"Поступили данные fro_pay, {amount}, pay_id -{pay_id}, {pay}")
+#         sync_send_message(admin, f"Поступил платеж на сумму {amount} рублей")
+#
+#         return 'OK', 200
+#
+#     except Exception as e:
+#         return str(e), 400  # Ошибка при обработке запроса
 
 
 if __name__ == '__main__':

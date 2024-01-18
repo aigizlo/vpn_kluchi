@@ -121,7 +121,7 @@ def add_keys(user_id, days):
 
 
 def add_free_keys(user_id):
-    days = 7
+    days = 3
     mydb = create_connection()
     server_id = get_minimum_used_server()
 

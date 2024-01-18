@@ -8,10 +8,15 @@ from outline_api import (
 
 #проверка на подписку в канал (на сервере)
 # tg_channel = "@corbots"
+# tg_channel_link = 'https://t.me/corbots'
+
 
 
 # проверка на подписку в канал (на сервере)
 tg_channel = "@off_radar"
+tg_channel_link = 'https://t.me/off_radar'
+
+
 # локально
 bot_name = 'vpn_offradar_bot'
 token = '6820291522:AAHbWTF-zSlL3bIdDqmjqSajYBsGbueRlQs'
@@ -34,8 +39,8 @@ dp = Dispatcher(bot, storage=storage)
 
 # Указываем Merchant ID и Secret Key от AnyPay
 merchant_id = '156CC3CBD6B66EFF7F'
-secret_key = '5gu8fRE3dxWUzuIsrKCa3iV2e5UfvSe1T3tT7MO'
-project_id = '12622'
+secret_key = 'JtoNDvlTxrQamCDSIDqgWU4DFzSpSTUihoFPMEs'
+project_id = '13544'
 
 # # Указываем Merchant ID и Secret Key от Free_kassa
 #
@@ -127,4 +132,7 @@ err_send = 502811372
 one_month = 149
 three_month = 299
 one_year = 1499
+
+
+article = 'https://telegra.ph/Kak-rabotaet-servis-Outline-Nadezhnost-i-Ustojchivost-k-Blokirovkam-10-03'
 

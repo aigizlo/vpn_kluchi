@@ -21,7 +21,7 @@ def generate_fropay_link(payment_id, amount):
 
 
 def generate_any_pay_link(pay_id, desc, amount, secret_key):
-    project_id = '12622'
+    project_id = '13544'
     currency = 'RUB'
     success_url = ''
     fail_url = ''

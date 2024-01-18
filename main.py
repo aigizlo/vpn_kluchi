@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from aiogram.utils import executor
 
+from expider_keys import get_expired_keys_info
 from handlers.handlers import get_key_command, my_info, process_callback_payment_method
 from handlers.handlers_change_location import change_location_handlers
 from handlers.send_all import *
@@ -128,8 +129,7 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
 
 
 def job_function():
-
-    sender_promo_txt()
+    get_expired_keys_info()
 async def on_startup(dispatcher):
     # Устанавливаем дефолтные команды
     await set_default_commands(dispatcher)

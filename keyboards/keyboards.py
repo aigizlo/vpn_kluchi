@@ -1,4 +1,5 @@
 from aiogram import types
+from config import tg_channel_link, article
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import one_month, three_month, one_year
@@ -83,7 +84,7 @@ def plus_balance():
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("✅Подписаться на канал", url="https://t.me/corbots"),
+        types.InlineKeyboardButton("✅Подписаться на канал", url=tg_channel_link),
         types.InlineKeyboardButton("🔁Проверить подписку", callback_data="subscribe_check"),
 
     )
@@ -157,7 +158,7 @@ def main_menu_inline():
     keyboard.add(
         types.InlineKeyboardButton("🔐Получить ключ", callback_data=f"get_keys"),
         types.InlineKeyboardButton('🔑Мои ключи', callback_data=f"my_keys"),
-        types.InlineKeyboardButton('💡Почему мы?', callback_data=f"my_keys"))
+        types.InlineKeyboardButton('💡Почему мы?', url=article))
 
     return keyboard
 

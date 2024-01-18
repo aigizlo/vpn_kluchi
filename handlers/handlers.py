@@ -1,3 +1,5 @@
+import aiogram
+
 from create_pay_links import generate_any_pay_link, generate_fropay_link
 from text import *
 from aiogram.dispatcher import FSMContext
@@ -70,9 +72,12 @@ server_id_country = {
 async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.message.chat.id
 
-    if callback_query.message.message_id:
-        await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=callback_query.message.message_id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
 
     if not check_user_in_system(callback_query.message.chat.id):
         await bot.send_message(chat_id=telegram_id,
@@ -115,9 +120,12 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 
     telegram_id = callback_query.message.chat.id
 
-    if callback_query.message.message_id:
-        await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=callback_query.message.message_id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
 
     price = callback_query.data.split(':')[1]  # получаем цену
 
@@ -156,9 +164,12 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 # inline кнопка "Отмена"
 @dp.callback_query_handler(lambda c: c.data == "go_back", state="*")
 async def process_callback_go_back(callback_query: types.CallbackQuery):
-    if callback_query.message.message_id:
-        await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                 message_id=callback_query.message.message_id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
 
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
@@ -206,17 +217,23 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
                                    text=answer, reply_markup=main_menu_inline(),
                                    parse_mode="HTML", disable_web_page_preview=True)
 
-            if callback_query.message.message_id:
-                await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                         message_id=callback_query.message.chat.id)
+            try:
+                if callback_query.message.message_id:
+                    await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                             message_id=callback_query.message.message_id)
+            except aiogram.utils.exceptions.MessageCantBeDeleted:
+                logger.info("Сообщение не может быть удалено.")
 
 
 
 
         else:
-            if callback_query.message.message_id:
-                await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                         message_id=callback_query.message.chat.id)
+            try:
+                if callback_query.message.message_id:
+                    await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                             message_id=callback_query.message.message_id)
+            except aiogram.utils.exceptions.MessageCantBeDeleted:
+                logger.info("Сообщение не может быть удалено.")
     else:
         await bot.send_message(chat_id=callback_query.message.chat.id,
                                text=answer,
@@ -247,25 +264,6 @@ async def check_subscription(callback_query: types.CallbackQuery):
                                  parse_mode="HTML",
                                  reply_markup=subscribe())
 
-        # Выясняем, есть пользовался ли юзер бесплатным тарифом
-        # use_free_tariff = User_Data.free_tariff_tg(telegram_id)
-        # chat_member = await bot.get_chat_member(chat_id="@off_radar",
-        #                                         user_id=telegram_id)
-
-        # if chat_member.status in ["member", "administrator", "creator", "owner"]:
-        #     if use_free_tariff == "UNUSED":
-        #         await bot.send_message(chat_id=callback_query.from_user.id,
-        #                                text="Благодарим за подписку, пожалуйста, вот ваш подарок",
-        #                                reply_markup=kb_free_tariff)
-        #         await bot.delete_message(chat_id=callback_query.message.chat.id,
-        #                                  message_id=callback_query.message.message_id)
-        #     else:
-        #         await bot.delete_message(chat_id=callback_query.message.chat.id,
-        #                                  message_id=callback_query.message.message_id)
-        # else:
-        #     await bot.send_message(chat_id=callback_query.message.chat.id,
-        #                            text="Вы не подписаны на канал!",
-        #                            reply_markup=subscribe_keyboard)
     except Exception as e:
         logger.error(f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
         await bot.send_message(err_send,

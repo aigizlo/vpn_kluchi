@@ -16,11 +16,11 @@ user_data = UserData()
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('exchange_keys'), state='*')
 async def change_location_handlers(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.from_user.id
-
+    # если пользователя нет в системе, заставляем его нажать /страт
     if not check_user_in_system(telegram_id):
         await bot.send_message(chat_id=telegram_id, text="Что бы начать работу с ботом используйте команду /start")
         return
-
+    # удаляем предыдущее сообщение
     try:
         if callback_query.message.message_id:
             await bot.delete_message(chat_id=callback_query.message.chat.id,
@@ -28,18 +28,19 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
     except aiogram.utils.exceptions.MessageCantBeDeleted:
         logger.info("Сообщение не может быть удалено.")
 
-
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
     user_id = user_info[0]
 
+    # получаем все key_id юзера
     keys_ids = user_data.get_keys_ids(user_id)
-
+    # узнаем их количество
     count_keys = len(keys_ids)
 
     logger.info(f"(change_location_handlers) Сменить локацию user - {user_info}")
 
     # ищем юзер_айди пользователя
     try:
+        # если ключей больше одного, то даем ему выбрать какой из них он хочет поменять
         if count_keys > 1:
 
             # получаем список имен ключей
@@ -66,12 +67,17 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
 
 
         else:
-
+            # если ключ один то..
             servers = user_data.get_used_server_id()
             key_id = keys_ids[0][0]
+            print(key_id)
             current_server = user_data.get_current_used_server(keys_ids[0][0])
+            print(current_server)
             current_server = current_server[0][0]
+            print(current_server)
             servers = [item[0] for item in servers]
+
+            print(servers)
             servers.remove(current_server)
             # генерим кнопки названия серверов
             keyboard = generate_location_button(servers)
@@ -90,7 +96,8 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
 
 
 # Меняем локацию
-@dp.callback_query_handler(lambda c: c.data.startswith("select_country_for_exchange"), state=MyStates.state_key_exchange)
+@dp.callback_query_handler(lambda c: c.data.startswith("select_country_for_exchange"),
+                           state=MyStates.state_key_exchange)
 async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
@@ -98,8 +105,6 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
     # выбранный сервер для смены локаций
     selected_server = callback_query.data.split(":")[1]
     user_data_state = await state.get_data()
-
-
 
     try:
         key_id = user_data_state['key_id']
@@ -128,7 +133,8 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
         answer = answer_if_change(new_key, location)
 
-        await bot.send_message(telegram_id, answer, parse_mode="HTML", disable_web_page_preview=True, reply_markup=main_menu_inline())
+        await bot.send_message(telegram_id, answer, parse_mode="HTML", disable_web_page_preview=True,
+                               reply_markup=main_menu_inline())
     except Exception as e:
         logger.error(f'(choosing_new_location) Ошибка при выборе новой локации - {e}')
 

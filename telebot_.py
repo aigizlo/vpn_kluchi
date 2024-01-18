@@ -34,7 +34,7 @@ def main_menu_telebot():
 
     get_key = types.InlineKeyboardButton(text="🔐Получить ключ", callback_data=f"get_keys")
     my_keys = types.InlineKeyboardButton(text='🔑Мои ключи', callback_data=f"my_keys")
-    why = types.InlineKeyboardButton(text='🔑Мои ключи', callback_data=f"my_keys")
+    why = types.InlineKeyboardButton(text='💡Почему мы?', url=config.article)
 
     keyboard.add(get_key, my_keys, why)
 
