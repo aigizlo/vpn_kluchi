@@ -5,12 +5,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import one_month, three_month, one_year
 
 server_id_country = {
-    1: '🇱🇺Нидерланды Амстердам',
-    2: '🇩🇪Германия Франкфурт',
-    3: '🇰🇿Казахстан Астана',
-    4: '🇷🇺Россия',
-    5: '🇹🇷Турция Стамбул',
-    6: '🇺🇸Америка Лос Анджелес'
+    1: '🇩🇪Германия Франкфурт',
+    2: '🇺🇸Америка Лос Анджелес'
 }
 
 
@@ -18,11 +14,13 @@ server_id_country = {
 def generate_key_buttons_for_exchange(name_keys):
     keyboard = InlineKeyboardMarkup(row_width=1)
     for name in name_keys:
-        keyboard.add(InlineKeyboardButton(text=f"«Ключ № {name[0]}»", callback_data=f"selecting_key_for_exchange:{name[0]}"))
+        keyboard.add(
+            InlineKeyboardButton(text=f"«Ключ № {name[0]}»", callback_data=f"selecting_key_for_exchange:{name[0]}"))
 
     keyboard.add(InlineKeyboardButton(text="⬅️Назад", callback_data="go_back"))
 
     return keyboard
+
 
 # генерация кнопок для продления
 def generate_key_buttons(name_keys):
@@ -34,6 +32,7 @@ def generate_key_buttons(name_keys):
 
     return keyboard
 
+
 # генерим имена серверов
 def generate_location_button(servers):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -43,6 +42,8 @@ def generate_location_button(servers):
     keyboard.add(InlineKeyboardButton(text="Отмена", callback_data="go_back"))
 
     return keyboard
+
+
 def capcha():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
@@ -78,8 +79,6 @@ def plus_balance():
     )
     return keyboard
 
-
-
 # кнопка для создания промокода
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -102,16 +101,14 @@ def kb_pay(amount, any_pay_link=None, fk_link=None):
     return keyboard
 
 
-
-
-
 # Получить ключ
 def choice_period():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         types.InlineKeyboardButton(f"3 дня в подарок 🎁", callback_data=f'subscribe_ago'),
         types.InlineKeyboardButton(f"1 месяц – {one_month} р.", callback_data=f'payment_method:{one_month}'),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"payment_method:{three_month}"),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)",
+                                   callback_data=f"payment_method:{three_month}"),
         types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
         types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
     )
@@ -123,7 +120,8 @@ def choice_period_not_free():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'payment_method:{one_month}'),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"payment_method:{three_month}"),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)",
+                                   callback_data=f"payment_method:{three_month}"),
         types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
         types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
     )
@@ -158,10 +156,9 @@ def main_menu_inline():
     keyboard.add(
         types.InlineKeyboardButton("🔐Получить ключ", callback_data=f"get_keys"),
         types.InlineKeyboardButton('🔑Мои ключи', callback_data=f"my_keys"),
-        types.InlineKeyboardButton('💡Почему мы?', url=article))
+        types.InlineKeyboardButton('💡Почему мы?', callback_data='why_we'))
 
     return keyboard
-
 
 # def back():
 #     keyboard = types.InlineKeyboardMarkup(row_width=1)

@@ -89,6 +89,7 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
                              caption=answer,
                              reply_markup=keyboard)
 
+
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('payment_method:'),
                            state=MyStates.payment_method)
 async def process_callback_payment_method(callback_query: types.CallbackQuery, state='*'):
@@ -213,8 +214,12 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
 #
 @dp.callback_query_handler(lambda c: c.data == "subscribe_ago", state="*")
 async def check_subscription(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                             message_id=callback_query.message.message_id)
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
     telegram_id = callback_query.from_user.id
 
     answer = """🎁 <b>ПОДАРОК ДЛЯ ВАС </b>🎁
@@ -263,6 +268,34 @@ async def my_info(message: types.Message):
     except Exception as e:
         logger.info(f"COMMAND_ERROR - /my_info, {e}")
         await message.reply(f"Произошла ошибка при получении информации о пользователе .{e}")
+
+
+@dp.callback_query_handler(lambda c: c.data == "why_we", state="*")
+async def subscribe_no_thanks(callback_query: types.CallbackQuery):
+    telegram_id = callback_query.from_user.id
+    user_info = user_data.get_userid_firsname_nickname(telegram_id)
+
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info(f"Сообщение не может быть удалено. {user_info}")
+
+
+    try:
+        with open('images/why_we.jpeg', 'rb') as photo:
+            await bot.send_photo(chat_id=telegram_id,
+                                 photo=photo,
+                                 caption=why_we,
+                                 parse_mode="HTML",
+                                 reply_markup=main_menu_inline())
+
+            logger.info(f"Почему мы ? {user_info}")
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.error(f"Ошибка при нажатии на Почему мы? - {user_info}")
+
+
 
 
 @dp.message_handler(commands=['help'], state="*")

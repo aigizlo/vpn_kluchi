@@ -60,6 +60,7 @@ async def process_start_command(message: types.Message):
             with open('images/menu.jpeg', 'rb') as photo:
                 await bot.send_photo(chat_id=telegram_id,
                                      photo=photo,
+                                     caption=instruction,
                                      reply_markup=main_menu_inline())
                 return
 
