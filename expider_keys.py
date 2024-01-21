@@ -1,7 +1,7 @@
 from time import sleep
 from telebot_ import sync_send_message, generate_prolong_button, sync_send_photo, main_menu_telebot
 from logger import logger
-from config import err_send
+from config import err_send, file_ids
 
 from logic_keys.delete_keys import delete_keys, delete_from_manager
 
@@ -109,10 +109,9 @@ def get_expired_keys_info():
                         id_for_delet_in_bd.append(key_id)
                         # сообщаем об удалении
                         try:
-                            with open('images/key_delete.jpeg', 'rb') as photo:
-                                sync_send_photo(telegram_id, photo, text, "HTML", main_menu_telebot())
-                                logger.info(
-                                    f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
+                            sync_send_photo(telegram_id, file_ids['key_delete'], text, "HTML", main_menu_telebot())
+                            logger.info(
+                                f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
                         except:
                             logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
 
@@ -124,9 +123,8 @@ def get_expired_keys_info():
                                                                              country=country)
                     # предупреждение за 1 день и предложение продлить ключ
                     try:
-                        with open('images/renewal.jpeg', 'rb') as photo:
-                            sync_send_photo(telegram_id, photo, text, "HTML", key_buttons)
-                            logger.info(f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
+                        sync_send_photo(telegram_id, file_ids['renewal'], text, "HTML", key_buttons)
+                        logger.info(f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
                     except:
                         logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
@@ -140,10 +138,9 @@ def get_expired_keys_info():
 
                     # предупреждение и предложение продлить ключ
                     try:
-                        with open('images/renewal.jpeg', 'rb') as photo:
-                            sync_send_photo(telegram_id, photo, text, "HTML", key_buttons)
-                            logger.info(
-                                f"Пользователю {telegram_id} отправлено сообщение об истечении срока действия ключа {key_id}")
+                        sync_send_photo(telegram_id, file_ids['renewal'], text, "HTML", key_buttons)
+                        logger.info(
+                            f"Пользователю {telegram_id} отправлено сообщение об истечении срока действия ключа {key_id}")
                     except:
                         logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
                     logger.info(f'Отправлено уведомление о продлении ключа пользователю - {telegram_id}')

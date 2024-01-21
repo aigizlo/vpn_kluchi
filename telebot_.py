@@ -61,5 +61,5 @@ def sync_send_message(chat_id, text, parse_mode=None, keyboard=None, web_page=No
                           disable_web_page_preview=web_page)
 
 
-def sync_send_photo(chat_id, photo, caption=None, parse_mode=None, keyboard=None):
-    sync_bot.send_photo(chat_id, photo, caption=caption, parse_mode=parse_mode, reply_markup=keyboard)
+def sync_send_photo(chat_id, file_id, caption=None, parse_mode=None, keyboard=None):
+    sync_bot.send_photo(chat_id, file_id, caption=caption, parse_mode=parse_mode, reply_markup=keyboard)

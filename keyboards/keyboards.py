@@ -55,8 +55,8 @@ def capcha():
 def keyboard_if_not_keys():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("✅Получить ключ", callback_data="get_keys"),
-        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back"),
+        types.InlineKeyboardButton("✅ Получить ключ", callback_data="get_keys"),
+        types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back"),
     )
     return keyboard
 
@@ -64,10 +64,10 @@ def keyboard_if_not_keys():
 def keyboard_if_have_keys():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("📍Сменить локацию", callback_data="exchange_keys"),
-        types.InlineKeyboardButton("⌛️Продлить ключи", callback_data="prolong_keys"),
-        types.InlineKeyboardButton("✅Получить ключ", callback_data="get_keys"),
-        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back"),
+        types.InlineKeyboardButton("📍 Сменить локацию", callback_data="exchange_keys"),
+        types.InlineKeyboardButton("⌛ Продлить ключи", callback_data="prolong_keys"),
+        types.InlineKeyboardButton("✅ Получить ключ", callback_data="get_keys"),
+        types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back"),
     )
     return keyboard
 
@@ -79,12 +79,13 @@ def plus_balance():
     )
     return keyboard
 
+
 # кнопка для создания промокода
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("✅Подписаться на канал", url=tg_channel_link),
-        types.InlineKeyboardButton("🔁Проверить подписку", callback_data="subscribe_check"),
+        types.InlineKeyboardButton("✅ Подписаться на канал", url=tg_channel_link),
+        types.InlineKeyboardButton("🔁 Проверить подписку", callback_data="subscribe_check"),
 
     )
     return keyboard
@@ -106,11 +107,11 @@ def choice_period():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         types.InlineKeyboardButton(f"3 дня в подарок 🎁", callback_data=f'subscribe_ago'),
-        types.InlineKeyboardButton(f"1 месяц – {one_month} р.", callback_data=f'payment_method:{one_month}'),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)",
+        types.InlineKeyboardButton(f"1 месяц – {one_month} ₽.", callback_data=f'payment_method:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} ₽ (1 мес в 🎁)",
                                    callback_data=f"payment_method:{three_month}"),
-        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
-        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
+        types.InlineKeyboardButton(f"1 год – {one_year} ₽ (4 мес. в 🎁)", callback_data=f"payment_method:{one_year}"),
+        types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back")
     )
     return keyboard
 
@@ -119,11 +120,11 @@ def choice_period():
 def choice_period_not_free():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'payment_method:{one_month}'),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)",
+        types.InlineKeyboardButton(f"1 месяц – {one_month} ₽.", callback_data=f'payment_method:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} ₽ (1 мес в 🎁)",
                                    callback_data=f"payment_method:{three_month}"),
-        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"payment_method:{one_year}"),
-        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
+        types.InlineKeyboardButton(f"1 год – {one_year} ₽ (4 мес. в 🎁)", callback_data=f"payment_method:{one_year}"),
+        types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back")
     )
     return keyboard
 
@@ -132,10 +133,11 @@ def choice_period_not_free():
 def choice_renewal_period():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton(f"1 месяц – {one_month} рублей", callback_data=f'renewal:{one_month}'),
-        types.InlineKeyboardButton(f"3 месяца – {three_month} р. (1 мес в 🎁)", callback_data=f"renewal:{three_month}"),
-        types.InlineKeyboardButton(f"1 год – {one_year} рублей Скидка 15%", callback_data=f"renewal:{one_year}"),
-        types.InlineKeyboardButton("⬅️Назад", callback_data="go_back")
+        types.InlineKeyboardButton(f"1 месяц – {one_month} ₽.", callback_data=f'renewal:{one_month}'),
+        types.InlineKeyboardButton(f"3 месяца – {three_month} ₽ (1 мес в 🎁)",
+                                   callback_data=f"renewal:{three_month}"),
+        types.InlineKeyboardButton(f"1 год – {one_year} ₽ (4 мес. в 🎁)", callback_data=f"renewal:{one_year}"),
+        types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back")
     )
     return keyboard
 
@@ -154,9 +156,20 @@ def get_pay_method_keyboard():
 def main_menu_inline():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("🔐Получить ключ", callback_data=f"get_keys"),
-        types.InlineKeyboardButton('🔑Мои ключи', callback_data=f"my_keys"),
-        types.InlineKeyboardButton('💡Почему мы?', callback_data='why_we'))
+        types.InlineKeyboardButton("📹 Видео-инструкция", callback_data=f"video_inst"),
+        types.InlineKeyboardButton("🔐 Получить ключ", callback_data=f"get_keys"),
+        types.InlineKeyboardButton('🔑 Мои ключи', callback_data=f"my_keys"),
+        types.InlineKeyboardButton('💡 Почему мы?', callback_data='why_we'))
+
+    return keyboard
+
+
+def main_menu_inline2():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("🔐 Получить ключ", callback_data=f"get_keys"),
+        types.InlineKeyboardButton('🔑 Мои ключи', callback_data=f"my_keys"),
+        types.InlineKeyboardButton('💡 Почему мы?', callback_data='why_we'))
 
     return keyboard
 

@@ -5,7 +5,7 @@ from create_pay_links import generate_fropay_link, generate_any_pay_link
 from logger import logger
 from text import answer_not_keys
 
-from config import dp, bot, err_send, one_month, one_year, three_month, secret_key
+from config import dp, bot, secret_key, file_ids
 from balance import creating_payment, creating_payment_for_renewal
 from keyboards.keyboards import *
 from logic_keys.add_keys import keys_send
@@ -57,7 +57,7 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
         user_id = user_data.get_user_id(telegram_id)
         # получаем список имен ключей
         key_ids = user_data.get_key_ids(user_id)
-        # создаем 2 клавиатуры 1 c кнопкой "Назад" и 'Продлить ключи' если ключи есть у пользователя 2ую - если ключи есть
+        # создаем 2 клавиатуры 1 c кнопкой "Назад" и 'Продлить ключи' если ключи есть у пользователя 2ую - если ключей нет
         keyboard = keyboard_if_have_keys()
 
         keyboard_not_keys = keyboard_if_not_keys()
@@ -76,12 +76,11 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
             # выбор клавиатуры в зависимости от условия
             reply_keyboard = keyboard_not_keys if key_ids == [] else keyboard
 
-            with open('images/my_keys.jpeg', 'rb') as photo:
-                await bot.send_photo(chat_id=telegram_id,
-                                     photo=photo,
-                                     caption=answer,
-                                     parse_mode="HTML",
-                                     reply_markup=reply_keyboard)
+            await bot.send_photo(chat_id=telegram_id,
+                                 photo=file_ids['my_keys'],
+                                 caption=answer,
+                                 parse_mode="HTML",
+                                 reply_markup=reply_keyboard)
 
         except Exception as e:
             logger.error(f"{e}")
@@ -120,11 +119,10 @@ async def prolong_key_command(callback_query: types.CallbackQuery, state: FSMCon
 
         # Первое сообщение с инлайн-клавиатурой
 
-        with open('images/renewal.jpeg', 'rb') as photo:
-            await bot.send_photo(chat_id=telegram_id,
-                                 photo=photo,
-                                 caption=answer,
-                                 reply_markup=key_buttons)
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids['renewal'],
+                             caption=answer,
+                             reply_markup=key_buttons)
 
     except Exception as e:
         logger.error(f"ERROR:Продлить ключи user - {user_info} ошибка - {e}")
@@ -157,22 +155,19 @@ async def process_select_key(callback_query: types.CallbackQuery, state: FSMCont
         # выводим клавиатуру, где юзер выбираем период продления
         keyboard = choice_renewal_period()
 
-        answer = f"""Вы выбрали <b>{selected_key}</b>
+        answer = f"""Вы выбрали ключ № <b>{selected_key}</b>
 
 ⏳ Выберите период, на который хотите продлить ваш ключ:
 """
 
-        with open('images/renewal.jpeg', 'rb') as photo:
-            await bot.send_photo(chat_id=telegram_id,
-                                 photo=photo,
-                                 caption=answer,
-                                 parse_mode='HTML',
-                                 reply_markup=keyboard)
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids['renewal'],
+                             caption=answer,
+                             parse_mode='HTML',
+                             reply_markup=keyboard)
 
         # передаем данные в новое состояние
         await state.set_state(MyStates.state_key_for_renewal)
-
-        # await bot.answer_callback_query(callback_query.id)
 
     except Exception as e:
         logger.error(f"ERROR: НЕ Выбран ключ для продления - {selected_key}, user - {user_info}, "
@@ -205,7 +200,6 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
         except aiogram.utils.exceptions.MessageCantBeDeleted:
             logger.info("Сообщение не может быть удалено.")
         await state.set_state(MyStates.pay_from_balance)
-
         logger.info(f"Продление ключа , user - {user_info} на сумму {price}")
 
         answer = f"Сумма покупки <b>{price}</b> рублей, выберите способ оплаты:"
@@ -215,28 +209,18 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
         desc = f'{user_id},{price},{pay_id}'
 
         any_pay_link = generate_any_pay_link(str(pay_id), desc, str(price), secret_key)
-        # вставляем ссылку в инлайн кнопку
 
         # fropay_link = generate_fropay_link(str(pay_id), str(price))
-
-        keyboard = kb_pay(price, any_pay_link)
-        # ----------------------------------------
-        with open('images/bill.jpeg', 'rb') as photo:
-            message = await bot.send_photo(chat_id=telegram_id,
-                                           photo=photo,
-                                           caption=answer,
-                                           parse_mode="HTML",
-                                           reply_markup=keyboard)
-            # Асинхронная задержка перед удалением сообщения
-            await asyncio.sleep(60)
-
-            # Удаление сообщения после задержки
-            try:
-                if callback_query.message.message_id:
-                    await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                             message_id=callback_query.message.message_id)
-            except aiogram.utils.exceptions.MessageCantBeDeleted:
-                logger.info("Сообщение не может быть удалено.")
+        if any_pay_link:
+            keyboard = kb_pay(price, any_pay_link)
+            with open('images/bill.jpeg', 'rb') as photo:
+                await bot.send_photo(chat_id=telegram_id,
+                                     photo=photo,
+                                     caption=answer,
+                                     parse_mode="HTML",
+                                     reply_markup=keyboard)
+        else:
+            await bot.send_message(telegram_id, "Ошибка при генерации ссылки для оплаты, обратитесь в службу поддержки")
 
     except Exception as e:
         logger.error(f"ERROR:Ошибка при продлении ключа, user - {user_info}, ошибка - {e}")

@@ -1,7 +1,7 @@
 from flask import Flask, request
 from telebot_ import main_menu_telebot
 
-from config import admin
+from config import admin, file_ids, err_send
 from logic_keys.add_keys import add_keys
 from logic_keys.renewal_keys import renewal_keys
 from text import answer_if_buy
@@ -74,8 +74,7 @@ def buy_key(user_id, amount):
 
     telegram_id = user_data.get_tg_if_use_user_id(user_id)
 
-    with open('images/key.jpeg', 'rb') as photo:
-        sync_send_photo(telegram_id, photo, answer, "HTML", main_menu_telebot())
+    sync_send_photo(telegram_id, file_ids['key'], answer, "HTML", main_menu_telebot())
 
 
 # обновляем статус платежа на оплаченый
@@ -84,8 +83,7 @@ def notifi_user(user_id, key_id):
 
     answer = f"✅ Вы успешно продлили \"<b>Ключ № {key_id}</b>\" "
 
-    with open('images/renewal_ok.jpeg', 'rb') as photo:
-        sync_send_photo(telegram_id, photo, answer, "HTML", main_menu_telebot())
+    sync_send_photo(telegram_id, file_ids['renewal_ok'], answer, "HTML", main_menu_telebot())
 
 
 @app.route('/notification_corbots', methods=['POST'])
@@ -100,12 +98,15 @@ def payment_notification():
         data['pay_id'],
         data['merchant_id'],
         data['status'],
+        data['test'],
         secret_key
 
     ])
 
     # Вычисляем SHA256 подпись
     calculated_signature = hashlib.sha256(signature_data.encode()).hexdigest()
+
+    logger.info(data)
 
     # Проверяем подпись
     if calculated_signature != data['sign']:
@@ -116,12 +117,13 @@ def payment_notification():
     pay_id = data['pay_id']
     merchant_id = data['merchant_id']
     status = data['status']
-    logger.info(f"Поступили данные ANY PAY {currency}, {amount}, {pay_id}, {merchant_id}, {status}")
+    test = data['test']
+    logger.info(f"Поступили данные ANY PAY {currency}, {amount}, {pay_id}, {merchant_id}, {status}, {test}")
     # проверяем покупка это или продление
     key_id, user_id = searche_key_id_user_id(pay_id)
     # если key_id = None то это покупка, в остальных - продление
 
-    # logger.info(key_id, user_id)
+    # logger.infoey_id, user_id)
 
     if status == 'paid':
         status = 1
@@ -135,7 +137,9 @@ def payment_notification():
             notifi_user(user_id, key_id)
 
     logger.info(f"Поступили данные ANY PAY {currency}, {amount}, {pay_id}, {merchant_id}, {status}")
+
     sync_send_message(admin, text=f"Поступил платеж на сумму {amount} рублей")
+    sync_send_message(err_send, text=f"Поступил платеж на сумму {amount}рублей")
 
     return 'OK', 200
 

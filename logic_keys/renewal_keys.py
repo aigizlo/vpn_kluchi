@@ -36,11 +36,10 @@ logger_template = {
 
 # продлеваем ключ, по telegram_id, key_name (название ключа), month - месяц
 def renewal_keys(key_id, amount):
-    logger.info(f'Продление ключа  key_id - {key_id}')
-
-    # user_id = UserData.get_user_id_with_key_id(key_id)
 
     month = get_month.get(amount)
+
+    logger.info(f'Продление ключа  key_id - {key_id}, сумма - {amount}, месяц - {month}', )
 
     try:
         # подключаемся к базе

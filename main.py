@@ -1,5 +1,5 @@
 import logging
-from config import admin
+from config import admin, err_send
 from apscheduler.triggers.interval import IntervalTrigger
 from aiogram import Dispatcher
 
@@ -43,7 +43,6 @@ scheduler = AsyncIOScheduler()
 
 @dp.message_handler(commands=['start'], state="*")
 async def process_start_command(message: types.Message):
-
     telegram_id = message.from_user.id
     username = message.from_user.first_name
     last_name = message.from_user.last_name
@@ -52,18 +51,16 @@ async def process_start_command(message: types.Message):
     premium = message.from_user.is_premium
     referer_user_id = message.get_args()
 
-
     logger.info(f"start command {telegram_id}, {username}, {nickname}")
     try:
         new_user = if_new_user(telegram_id, username, referer_user_id, last_name, nickname, language, premium)
         if not new_user:
-            with open('images/menu.jpeg', 'rb') as photo:
-                await bot.send_photo(chat_id=telegram_id,
-                                     photo=photo,
-                                     caption=instruction,
-                                     parse_mode="HTML",
-                                     reply_markup=main_menu_inline())
-                return
+            await bot.send_photo(chat_id=telegram_id,
+                                 photo=file_ids['menu'],
+                                 caption=instruction,
+                                 parse_mode="HTML",
+                                 reply_markup=main_menu_inline())
+            return
 
         if referer_user_id:
             referer_telegram_id = User_Data.get_tg_if_use_user_id(referer_user_id)
@@ -83,8 +80,8 @@ async def process_start_command(message: types.Message):
                                                       f"username : {username},"
                                                       f"{referer_user_id}")
         await bot.send_message(chat_id=admin, text=f"INFO: NEW USER - tg : {telegram_id}, "
-                                                      f"username : {username},"
-                                                      f"{referer_user_id}")
+                                                   f"username : {username},"
+                                                   f"{referer_user_id}")
 
     except Exception as e:
         await bot.send_message(err_send, f"Ошибка при регистрации нового пользователя ошибка - {e}")
@@ -110,12 +107,11 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
     # kb_free_tariff = free_tariff()
 
     # отправялем пиветственный текст
-    with open('images/menu.jpeg', 'rb') as photo:
-        await bot.send_photo(chat_id=callback_query.message.chat.id,
-                             photo=photo,
-                             caption=instruction,
-                             parse_mode="HTML",
-                             reply_markup=main_menu_inline())
+    await bot.send_photo(chat_id=callback_query.message.chat.id,
+                         photo=file_ids['menu'],
+                         caption=instruction,
+                         parse_mode="HTML",
+                         reply_markup=main_menu_inline())
 
     # предлагаем пользователю тестовый период
     # await bot.send_message(chat_id=telegram_id,
@@ -126,9 +122,10 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
     logger.info(f'Предложен тестовый период user - {user_id}')
 
 
-
 def job_function():
     get_expired_keys_info()
+
+
 async def on_startup(dispatcher):
     # Устанавливаем дефолтные команды
     await set_default_commands(dispatcher)
@@ -138,6 +135,7 @@ async def on_startup(dispatcher):
 
 async def on_startup_notify(dp: Dispatcher):
     await dp.bot.send_message(err_send, "Бот Запущен")
+
 
 if __name__ == '__main__':
     # scheduler.add_job(job_function, IntervalTrigger(seconds=3))

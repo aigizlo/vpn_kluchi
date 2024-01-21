@@ -1,18 +1,16 @@
 import aiogram
-
 from create_pay_links import generate_any_pay_link, generate_fropay_link
 from text import *
 from aiogram.dispatcher import FSMContext
 from logger import logger
-
-import asyncio
-
-from config import dp, bot, err_send, secret_key, tg_channel
+from config import dp, bot, err_send, secret_key, tg_channel, file_ids
 from balance import creating_payment
 from keyboards.keyboards import *
 from logic_keys.add_keys import add_free_keys
 from states import MyStates
 from user_data import UserData, check_user_in_system
+
+video_id = None
 
 user_data = UserData()
 amount_to_month = {
@@ -77,17 +75,17 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
         keyboard = choice_period()
 
     answer = "Выберите тариф:"
-    # cur_state = await state.get_state()
 
     await state.set_state(MyStates.payment_method)
 
-    logger.info(f"Получить ключ, user_id - {user_info}")
-
-    with open('images/tarrif.jpeg', 'rb') as photo:
+    try:
         await bot.send_photo(chat_id=telegram_id,
-                             photo=photo,
+                             photo=file_ids["tarrif"],
                              caption=answer,
                              reply_markup=keyboard)
+        logger.info(f"Получить ключ, user_id - {user_info}")
+    except Exception as e:
+        logger.error(f'ERROR - Получить ключ, user_id - {user_info} {e}')
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('payment_method:'),
@@ -124,12 +122,15 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
 
     fropay_link = generate_fropay_link(str(pay_id), str(price))
     keyboard = kb_pay(price, any_pay_link, fropay_link)
-
-    with open('images/bill.jpeg', 'rb') as photo:
-        message = await bot.send_photo(chat_id=telegram_id,
-                                       photo=photo,
-                                       caption=answer,
-                                       reply_markup=keyboard)
+    try:
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids["bill"],
+                             caption=answer,
+                             parse_mode="HTML",
+                             reply_markup=keyboard)
+        logger.info(f"Способ оплаты {user_info}")
+    except Exception as e:
+        logger.error(f'ERROR - Способ оплаты - {user_info}', {e})
 
 
 # inline кнопка "Отмена"
@@ -144,14 +145,18 @@ async def process_callback_go_back(callback_query: types.CallbackQuery):
 
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
-    with open('images/menu.jpeg', 'rb') as photo:
+    try:
         await bot.send_photo(chat_id=callback_query.message.chat.id,
-                             photo=photo,
+                             photo=file_ids['menu'],
                              caption=instruction,
                              parse_mode="HTML",
                              reply_markup=main_menu_inline())
+        logger.info(f"Отмена - user - {user_info}")
+    except Exception as e:
+        logger.error(f'ERROR - Отмена - {user_info}', {e})
 
-    logger.info(f"Отмена - user - {user_info}")
+
+
 
 
 @dp.callback_query_handler(lambda c: c.data == "subscribe_check", state="*")
@@ -195,9 +200,6 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
             except aiogram.utils.exceptions.MessageCantBeDeleted:
                 logger.info("Сообщение не может быть удалено.")
 
-
-
-
         else:
             try:
                 if callback_query.message.message_id:
@@ -232,12 +234,11 @@ async def check_subscription(callback_query: types.CallbackQuery):
 
         user_id = User_Data.get_user_id(telegram_id)
 
-        with open('images/present.jpeg', 'rb') as photo:
-            await bot.send_photo(chat_id=telegram_id,
-                                 photo=photo,
-                                 caption=answer,
-                                 parse_mode="HTML",
-                                 reply_markup=subscribe())
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids['present'],
+                             caption=answer,
+                             parse_mode="HTML",
+                             reply_markup=subscribe())
 
     except Exception as e:
         logger.error(f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
@@ -282,20 +283,56 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
     except aiogram.utils.exceptions.MessageCantBeDeleted:
         logger.info(f"Сообщение не может быть удалено. {user_info}")
 
-
     try:
-        with open('images/why_we.jpeg', 'rb') as photo:
-            await bot.send_photo(chat_id=telegram_id,
-                                 photo=photo,
-                                 caption=why_we,
-                                 parse_mode="HTML",
-                                 reply_markup=main_menu_inline())
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids["why_we"],
+                             caption=why_we,
+                             parse_mode="HTML",
+                             reply_markup=main_menu_inline())
 
-            logger.info(f"Почему мы ? {user_info}")
+        logger.info(f"Почему мы ? {user_info}")
     except aiogram.utils.exceptions.MessageCantBeDeleted:
         logger.error(f"Ошибка при нажатии на Почему мы? - {user_info}")
 
 
+@dp.callback_query_handler(lambda c: c.data == "video_inst", state="*")
+async def subscribe_no_thanks(callback_query: types.CallbackQuery):
+    telegram_id = callback_query.from_user.id
+    user_info = user_data.get_userid_firsname_nickname(telegram_id)
+
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info(f"Сообщение не может быть удалено. {user_info}")
+
+    try:
+        await bot.send_video(chat_id=callback_query.message.chat.id,
+                             video=file_ids['video'],
+                             caption=instruction,
+                             parse_mode="HTML",
+                             reply_markup=main_menu_inline2())
+        logger.info(f"Видео инструкция - {user_info}")
+    except Exception as e:
+        logger.error(f"ERROR - Видео инструкция - {user_info}, {e}")
+
+
+@dp.message_handler(content_types=['photo', 'video', 'document'])
+async def handle_docs_photo(message: types.Message):
+    # Получаем подпись, если она есть
+    caption = message.caption if message.caption else "No caption"
+
+    # Обработка фото
+    if message.photo:
+        photo_id = message.photo[-1].file_id  # Берем file_id самой большой версии фото
+        logger.info(f"Photo ID: {photo_id}, Caption: {caption}")
+        # Здесь вы можете сохранить photo_id и caption в файл или базу данных
+
+    # Обработка видео
+    elif message.video:
+        video_id = message.video.file_id
+        logger.info(f"Video ID: {video_id}, Caption: {caption}")
 
 
 @dp.message_handler(commands=['help'], state="*")

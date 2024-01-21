@@ -131,8 +131,22 @@ err_send = 502811372
 # цены
 one_month = 149
 three_month = 299
-one_year = 1499
-
-
+one_year = 1199
 article = 'https://telegra.ph/Kak-rabotaet-servis-Outline-Nadezhnost-i-Ustojchivost-k-Blokirovkam-10-03'
+
+
+file_ids = {'video': 'BAACAgIAAxkBAAIC7mWtQBk2CFTOC96pV0ihzwsZO0COAAJISwACV9doSf-4Rhw2Xu7-NAQ',
+            'menu': 'AgACAgIAAxkBAAIC72WtQBtufv9SxI86dqguU0beA0q4AAIh1TEbV9doSdd55L9lB5rrAQADAgADeAADNAQ',
+            'my_keys': 'AgACAgIAAxkBAAIC8GWtQCXMh-NsyXhShIAjnApXUcgLAAIi1TEbV9doSTHjXpNLkyBJAQADAgADeAADNAQ',
+            'bill': 'AgACAgIAAxkBAAIC8mWtQDyqSDLJSbCary2t2Mlljkr5AAIj1TEbV9doSW6115_lZaAwAQADAgADeAADNAQ',
+            'logger.info': 'AgACAgIAAxkBAAIC82WtQFp71VcQXnWjn22Q9UFu7ZQnAAIk1TEbV9doSUKqlXowHDcxAQADAgADeAADNAQ',
+            'change_location': 'AgACAgIAAxkBAAIC9GWtQIo2AabFua74D-60hkB1iYeNAAIk1TEbV9doSUKqlXowHDcxAQADAgADeAADNAQ',
+            'key_delete': 'AgACAgIAAxkBAAIC9WWtQJbunXm3dfXGgQf6qQdNEAJBAAIl1TEbV9doSTvT0QluqlIhAQADAgADeAADNAQ',
+            'key': 'AgACAgIAAxkBAAIC9mWtQKUR60VaYTw2OYoJf0SSLu0EAAIm1TEbV9doSYkVOhkxDRVbAQADAgADeAADNAQ',
+            'location': 'AgACAgIAAxkBAAIC92WtQKoAAR5017N1Yb4VnZBCHsT5TwACJ9UxG1fXaEkXARFIHx71jwEAAwIAA3gAAzQE',
+            'present': 'AgACAgIAAxkBAAIC-GWtQLXHmR8UwHIBM2ylcDCz6BMIAAIo1TEbV9doSRZ3gmVl70rEAQADAgADeAADNAQ',
+            'renewal_ok': 'AgACAgIAAxkBAAIC-WWtQM26KyXm6JBSYY3sk-Tjs15FAAIp1TEbV9doSeuEltvYO7nDAQADAgADeAADNAQ',
+            'renewal': 'AgACAgIAAxkBAAIC-mWtQNhVUC-6xm8t3bzvrvkrBIiCAAIq1TEbV9doST_iocBMc2luAQADAgADeAADNAQ',
+            'tarrif': 'AgACAgIAAxkBAAIC-2WtQOSUXZsTNtTKufRdGJTqJN1HAAIr1TEbV9doSYMbEV95cytrAQADAgADeAADNAQ',
+            'why_we': 'AgACAgIAAxkBAAIC_GWtQO1yksOEy9R7yAsn9s6koYF6AAIt1TEbV9doSekBbT0s9aunAQADAgADeAADNAQ'}
 

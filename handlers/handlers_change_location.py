@@ -3,8 +3,7 @@ from aiogram.dispatcher import FSMContext
 from logger import logger
 # from handlers import server_id_country
 from logic_keys.add_keys import exchange_server
-from config import support
-from config import dp, bot
+from config import support, dp, bot, file_ids
 from keyboards.keyboards import *
 from text import answer_error, answer_if_change
 from states import MyStates
@@ -58,26 +57,21 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
             # Первое сообщение с инлайн-клавиатурой
             # await bot.send_message(chat_id=telegram_id, text=answer, reply_markup=key_buttons)
 
-            with open('images/my_keys.jpeg', 'rb') as photo:
-                await bot.send_photo(chat_id=telegram_id,
-                                     photo=photo,
-                                     caption=answer,
-                                     parse_mode="HTML",
-                                     reply_markup=key_buttons)
+            await bot.send_photo(chat_id=telegram_id,
+                                 photo=file_ids["my_keys"],
+                                 caption=answer,
+                                 parse_mode="HTML",
+                                 reply_markup=key_buttons)
 
 
         else:
             # если ключ один то..
             servers = user_data.get_used_server_id()
             key_id = keys_ids[0][0]
-            print(key_id)
             current_server = user_data.get_current_used_server(keys_ids[0][0])
-            print(current_server)
             current_server = current_server[0][0]
-            print(current_server)
             servers = [item[0] for item in servers]
 
-            print(servers)
             servers.remove(current_server)
             # генерим кнопки названия серверов
             keyboard = generate_location_button(servers)
@@ -168,12 +162,11 @@ async def select_key_for_exchange(callback_query: types.CallbackQuery, state: FS
 
         answer = f"Вы выбрали {selected_key}\nВыберите новую локацию:"
 
-        with open('images/my_keys.jpeg', 'rb') as photo:
-            await bot.send_photo(chat_id=telegram_id,
-                                 photo=photo,
-                                 caption=answer,
-                                 parse_mode="HTML",
-                                 reply_markup=keyboard)
+        await bot.send_photo(chat_id=telegram_id,
+                             photo=file_ids['change_location'],
+                             caption=answer,
+                             parse_mode="HTML",
+                             reply_markup=keyboard)
         # await bot.send_message(telegram_id, answer, reply_markup=keyboard)
 
     except Exception as e:
