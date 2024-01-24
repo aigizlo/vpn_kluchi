@@ -95,6 +95,9 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
     telegram_id = callback_query.message.chat.id
     user_id = User_Data.get_user_id(telegram_id)
 
+    # обновляем последнее действие пользователя
+    User_Data.update_last_activity(user_id)
+
     # удаляем капчу
     try:
         if callback_query.message.message_id:
@@ -112,14 +115,6 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
                          caption=instruction,
                          parse_mode="HTML",
                          reply_markup=main_menu_inline())
-
-    # предлагаем пользователю тестовый период
-    # await bot.send_message(chat_id=telegram_id,
-    #                        text=promotion_text,
-    #                        reply_markup=kb_free_tariff,
-    #                        parse_mode="HTML",
-    #                        )
-    logger.info(f'Предложен тестовый период user - {user_id}')
 
 
 def job_function():

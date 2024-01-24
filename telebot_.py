@@ -15,7 +15,7 @@ sync_bot = telebot.TeleBot(token)
 def get_key_kb():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
 
-    a = types.InlineKeyboardButton(text="🔐Получить ключ", callback_data="get_keys")
+    a = types.InlineKeyboardButton(text="🔐 Получить ключ", callback_data="get_keys")
     keyboard.add(a)
     return keyboard
 
@@ -32,11 +32,22 @@ def free_tariff_telebot_kb():
 def main_menu_telebot():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
 
-    get_key = types.InlineKeyboardButton(text="🔐Получить ключ", callback_data=f"get_keys")
-    my_keys = types.InlineKeyboardButton(text='🔑Мои ключи', callback_data=f"my_keys")
-    why = types.InlineKeyboardButton(text='💡Почему мы?', callback_data='why_we')
+    get_key = types.InlineKeyboardButton(text="🔐 Получить ключ", callback_data=f"get_keys")
+    my_keys = types.InlineKeyboardButton(text='🔑 Мои ключи', callback_data=f"my_keys")
+    why = types.InlineKeyboardButton(text='💡 Почему мы?', callback_data='why_we')
 
     keyboard.add(get_key, my_keys, why)
+
+    return keyboard
+
+def main_menu_telebot2():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    instruct = types.InlineKeyboardButton(text="📹 Видео-инструкция", callback_data=f"video_inst")
+    get_key = types.InlineKeyboardButton(text="🔐 Получить ключ", callback_data=f"get_keys")
+    my_keys = types.InlineKeyboardButton(text='🔑 Мои ключи', callback_data=f"my_keys")
+    why = types.InlineKeyboardButton(text='💡 Почему мы?', callback_data='why_we')
+
+    keyboard.add(instruct, get_key, my_keys, why)
 
     return keyboard
 

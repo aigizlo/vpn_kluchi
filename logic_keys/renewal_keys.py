@@ -36,8 +36,8 @@ logger_template = {
 
 # продлеваем ключ, по telegram_id, key_name (название ключа), month - месяц
 def renewal_keys(key_id, amount):
-
-    month = get_month.get(amount)
+    amount_float = float(amount)
+    month = get_month.get(int(amount_float))
 
     logger.info(f'Продление ключа  key_id - {key_id}, сумма - {amount}, месяц - {month}', )
 
@@ -46,8 +46,9 @@ def renewal_keys(key_id, amount):
         with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
             # продлеваем данный ключ на указанный month (обновляем дату работы ключа)
             mycursor.execute(sql_update_date_work_key, (month, key_id))
-            logger.info(logger_template["info"].format(key_id=key_id,  month=month))
+            logger.info(logger_template["info"].format(key_id=key_id, month=month))
             return key_id
+
     except Exception as e:
         logger.error(logger_template["error"].format(key_id=key_id, month=month, e=e))
         return False

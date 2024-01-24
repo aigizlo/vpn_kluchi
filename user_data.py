@@ -2,6 +2,9 @@ import mysql.connector
 from get_conn import create_connection
 import locale
 
+from datetime import datetime, timedelta
+
+
 from telebot_ import sync_send_message
 
 from logger import logger
@@ -29,6 +32,8 @@ def execute_query(query, params=None):
         logger.error(f"PROCESS:execute_query, запрос {query}, {params}.  Ошибка - {e}")
 
         raise QueryExecutionError(f"Ошибка при выполнении запроса : {query},Error -  {e}")
+
+
 
 
 def get_list_admins_telegram_id():
@@ -76,6 +81,34 @@ class UserData:
             return self.cursor.fetchall()
         except mysql.connector.Error as e:
             logger.error(f"QUERY_ERROR - {e}")
+            return False
+
+    def update_last_activity(self, user_id):
+        try:
+            # обновляем last_seen в last_activity
+            sql_update_act = "UPDATE last_activity SET last_seen = %s WHERE user_id = %s"
+            # ищем last_seen в last_activity
+            sql_select_act = "SELECT last_seen FROM last_activity WHERE user_id = %s"
+            # если записей нет вообще то создаем
+            sql_insert_last_act = "INSERT INTO last_activity (user_id, last_seen) VALUES (%s, %s)"
+
+            now = datetime.now()
+
+            resul_select = self.execute_query(sql_select_act, (user_id,))
+
+            if resul_select:
+                result_update = self.execute_query(sql_update_act, (now, user_id,))
+                logger.info(f"UPDATE LAST ACTIVITY user - {user_id}, {now}")
+                return result_update
+
+            else:
+                result_insert = self.execute_query(sql_insert_last_act, (user_id, now,))
+                logger.info(f"INSERT LAST ACTIVITY user - {user_id}, {now}")
+                return result_insert
+        except Exception as e:
+            logger.error(f"ERROR:update_last_activity - ошибка при обновлении информации о последней"
+                         f" активности пользователя - {user_id}, ошибка - {e}")
+            return False
 
     def get_tg_if_use_user_id(self, user_id):
         try:

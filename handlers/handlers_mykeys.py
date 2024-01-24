@@ -1,6 +1,5 @@
 import aiogram
 from aiogram.dispatcher import FSMContext
-import asyncio
 from create_pay_links import generate_fropay_link, generate_any_pay_link
 from logger import logger
 from text import answer_not_keys
@@ -52,9 +51,13 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
 
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
 
+    user_id = user_info[0]
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
+
     # ищем юзер_айди пользовател
     try:
-        user_id = user_data.get_user_id(telegram_id)
         # получаем список имен ключей
         key_ids = user_data.get_key_ids(user_id)
         # создаем 2 клавиатуры 1 c кнопкой "Назад" и 'Продлить ключи' если ключи есть у пользователя 2ую - если ключей нет
@@ -86,7 +89,6 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
             logger.error(f"{e}")
     except Exception as e:
         logger.error(f"ERROR:Мои ключи, user - {user_info}, ошибка - {e}")
-        # await message.answer(answer_error, reply_markup=main_menu())
 
 
 # Продлить ключи                                                              здесь ловим состояние
@@ -94,6 +96,10 @@ async def my_keys(callback_query: types.CallbackQuery, state: FSMContext):
 async def prolong_key_command(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
+    user_id = user_info[0]
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
 
     try:
         if callback_query.message.message_id:
@@ -103,7 +109,6 @@ async def prolong_key_command(callback_query: types.CallbackQuery, state: FSMCon
         logger.info("Сообщение не может быть удалено.")
     # ищем юзер_айди пользователя
     try:
-        user_id = user_info[0]
         # получаем список имен ключей
         key_ids = user_data.get_key_ids(user_id)
 
@@ -134,6 +139,9 @@ async def prolong_key_command(callback_query: types.CallbackQuery, state: FSMCon
 async def process_select_key(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
+    user_id = user_info[0]
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
 
     try:
         # выбранный ключ для продления
@@ -181,6 +189,11 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
 
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
 
+    user_id = user_info[0]
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
+
     # берем переменные от этого состояния
     user_data_state = await state.get_data()
 
@@ -189,8 +202,6 @@ async def renewal_process(callback_query: types.CallbackQuery, state: FSMContext
     try:
         # Получаем данные из callback_data, месяц
         price = int(callback_query.data.split(':')[1])
-
-        user_id = user_info[0]
 
         # удаляем клавиатуру с выбором тарифа для продления
         try:

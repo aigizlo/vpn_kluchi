@@ -66,6 +66,9 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
 
     user_id = user_info[0]
 
+    # обновляем последнее дествие польщзователя
+    user_data.update_last_activity(user_id)
+
     free_tarrif = user_data.free_tariff(user_id)
 
     # импортируем кливатуру
@@ -94,6 +97,9 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
 
     user_id = user_info[0]
+
+    # обновляем последнее дествие польщзователя
+    user_data.update_last_activity(user_id)
 
     telegram_id = callback_query.message.chat.id
 
@@ -144,6 +150,10 @@ async def process_callback_go_back(callback_query: types.CallbackQuery):
         logger.info("Сообщение не может быть удалено.")
 
     user_info = user_data.get_userid_firsname_nickname(callback_query.message.chat.id)
+    user_id = user_info[0]
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
 
     try:
         await bot.send_photo(chat_id=callback_query.message.chat.id,
@@ -156,15 +166,14 @@ async def process_callback_go_back(callback_query: types.CallbackQuery):
         logger.error(f'ERROR - Отмена - {user_info}', {e})
 
 
-
-
-
 @dp.callback_query_handler(lambda c: c.data == "subscribe_check", state="*")
 async def subscribe_no_thanks(callback_query: types.CallbackQuery):
-    User_Data = UserData()
     telegram_id = callback_query.from_user.id
 
-    user_id = User_Data.get_user_id(telegram_id)
+    user_id = user_data.get_user_id(telegram_id)
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
 
     answer = '''Вы не подписаны на канал!
 
@@ -174,7 +183,7 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
     subscribe_keyboard = subscribe()
 
     # Выясняем, есть пользовался ли юзер бесплатным тарифом
-    use_free_tariff = User_Data.free_tariff_tg(telegram_id)
+    use_free_tariff = user_data.free_tariff_tg(telegram_id)
     chat_member = await bot.get_chat_member(chat_id=tg_channel,
                                             user_id=telegram_id)
 
@@ -183,15 +192,21 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
 
             key_value, server_id = add_free_keys(user_id)
 
-            answer = text_free_tariff(server_id, key_value)
+            answer = text_free_tariff(server_id)
 
-            User_Data.change_free_tariff(user_id, 1)
+            key_value = f'<code>{key_value}</code>'
+
+            user_data.change_free_tariff(user_id, 1)
 
             # Обновляем данные об использовании бесплатного тарифа
 
             await bot.send_message(chat_id=callback_query.from_user.id,
-                                   text=answer, reply_markup=main_menu_inline(),
-                                   parse_mode="HTML", disable_web_page_preview=True)
+                                   text=answer,
+                                   parse_mode="HTML",
+                                   disable_web_page_preview=True)
+            await bot.send_message(chat_id=callback_query.from_user.id,
+                                   text=key_value, reply_markup=main_menu_inline(),
+                                   parse_mode="HTML")
 
             try:
                 if callback_query.message.message_id:
@@ -224,15 +239,17 @@ async def check_subscription(callback_query: types.CallbackQuery):
         logger.info("Сообщение не может быть удалено.")
     telegram_id = callback_query.from_user.id
 
+    user_id = user_data.get_user_id(telegram_id)
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
+
     answer = """🎁 <b>ПОДАРОК ДЛЯ ВАС </b>🎁
 
 ✅ Подпишитесь на канал и получите 3 дня пользования ключом БЕСПЛАТНО! 
 """
 
     try:
-        User_Data = UserData()
-
-        user_id = User_Data.get_user_id(telegram_id)
 
         await bot.send_photo(chat_id=telegram_id,
                              photo=file_ids['present'],
@@ -249,32 +266,31 @@ async def check_subscription(callback_query: types.CallbackQuery):
 # @dp.callback_query_handler(lambda c: c.data == "", state="*")
 # async def check_subscription(callback_query: types.CallbackQuery):
 
-@dp.message_handler(commands=['my_info'], state="*")
-async def my_info(message: types.Message):
-    try:
-        user_info = user_data.get_userid_firsname_nickname(message.from_user.id)
-
-        user_id = user_info[0]
-
-        all_info = user_data.get_user_info(user_id)
-
-        txt_user_id = f"Мой user_id : {user_id}\n"
-
-        answer = txt_user_id + all_info
-
-        await message.reply(answer, disable_web_page_preview=True,
-                            parse_mode="HTML")
-        logger.info(f"my_info command - user {user_id}")
-
-    except Exception as e:
-        logger.info(f"COMMAND_ERROR - /my_info, {e}")
-        await message.reply(f"Произошла ошибка при получении информации о пользователе .{e}")
+# @dp.message_handler(commands=['my_info'], state="*")
+# async def my_info(message: types.Message):
+#     try:
+#         user_info = user_data.get_userid_firsname_nickname(message.from_user.id)
+#
+#         user_id = user_info[0]
+#
+#         txt_user_id = f"Мой user_id : {user_id}\n"
+#
+#         await message.reply(txt_user_id, disable_web_page_preview=True,
+#                             parse_mode="HTML")
+#         logger.info(f"my_info command - user {user_id}")
+#
+#     except Exception as e:
+#         logger.info(f"COMMAND_ERROR - /my_info, {e}")
+#         await message.reply(f"Произошла ошибка при получении информации о пользователе .{e}")
 
 
 @dp.callback_query_handler(lambda c: c.data == "why_we", state="*")
 async def subscribe_no_thanks(callback_query: types.CallbackQuery):
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_info[0])
 
     try:
         if callback_query.message.message_id:
@@ -300,6 +316,9 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
     telegram_id = callback_query.from_user.id
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
 
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_info[0])
+
     try:
         if callback_query.message.message_id:
             await bot.delete_message(chat_id=callback_query.message.chat.id,
@@ -323,16 +342,18 @@ async def handle_docs_photo(message: types.Message):
     # Получаем подпись, если она есть
     caption = message.caption if message.caption else "No caption"
 
+    user_info = user_data.get_userid_firsname_nickname(message.from_user.id)
+
     # Обработка фото
     if message.photo:
         photo_id = message.photo[-1].file_id  # Берем file_id самой большой версии фото
-        logger.info(f"Photo ID: {photo_id}, Caption: {caption}")
+        logger.info(f"Photo ID: {photo_id}, Caption: {caption}, user - {user_info}")
         # Здесь вы можете сохранить photo_id и caption в файл или базу данных
 
     # Обработка видео
     elif message.video:
         video_id = message.video.file_id
-        logger.info(f"Video ID: {video_id}, Caption: {caption}")
+        logger.info(f"Video ID: {video_id}, Caption: {caption}, user - {user_info}")
 
 
 @dp.message_handler(commands=['help'], state="*")
@@ -342,4 +363,8 @@ async def my_info(message: types.Message):
 
 @dp.message_handler(commands=['instruction'], state="*")
 async def my_info(message: types.Message):
-    await message.reply(instruction, parse_mode="HTML", disable_web_page_preview=True)
+    await bot.send_video(chat_id=message.from_user.id,
+                         video=file_ids['video'],
+                         caption=instruction,
+                         parse_mode="HTML",
+                         reply_markup=main_menu_inline2())

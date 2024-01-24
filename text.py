@@ -13,17 +13,13 @@ why_we = """🚀 Быстрый VPN без ограничений
 👉 <a href="https://telegra.ph/Kak-rabotaet-servis-Nadezhnost-i-Ustojchivost-k-Blokirovkam-01-19">Больше информации читайте в статье</a>"""
 
 server_id_country = {
-    1: '🇱🇺Нидерланды Амстердам',
-    2: '🇩🇪Германия Франкфурт',
-    3: '🇰🇿Казахстан Астана',
-    4: '🇷🇺Россия',
-    5: '🇹🇷Турция Стамбул',
-    6: '🇺🇸Америка Лос Анджелес'
+    1: '🇩🇪Германия Франкфурт',
+    2: '🇺🇸Америка Лос Анджелес'
 }
 
 menu_txt = """🌏 Как пользоваться VPN?
 
-✅ Шаг 1: Скачайте приложение на Android, iPhone, Windows, MacOS
+✅ Шаг 1: Скачайте приложение Outline на Android, iPhone, Windows, MacOS
 
 ✅ Шаг 2: Получите ключ и вставьте его в скаченное приложении
 
@@ -34,17 +30,16 @@ menu_txt = """🌏 Как пользоваться VPN?
 not_bot_text = "Что бы пользоваться телеграм-ботом, пожалуйста, подтвердите, что вы не робот. Нажмите на «Я не робот»"
 
 
-def answer_if_change(key_value, location):
+def answer_if_change(location):
     global instruction
     answer = f"""Локация ключа изменена! 👌
 
 📍Локация: {location}    
-
-<b>ВАШ КЛЮЧ 🔑</b>
+{instruction}
+<b>НИЖЕ ВАШ КЛЮЧ 🔑</b>
 👇 (кликни для копирования)
-<code>{key_value}</code>
 """
-    return answer + instruction
+    return answer
 
 
 answer_not_keys = """😔 У вас еще нет ключей!
@@ -54,7 +49,7 @@ answer_not_keys = """😔 У вас еще нет ключей!
 instruction = """
 <b>🌏 Как пользоваться VPN?</b>
 
-<b>✅Шаг 1:</b> Скачайте приложение <a href="https://play.google.com/store/apps/details?id=org.outline.android.client">Android</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356177741">iPhone</a>, <a href="https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe">Windows</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356178125">MacOS</a>
+<b>✅Шаг 1:</b> Скачайте приложение Outline <a href="https://play.google.com/store/apps/details?id=org.outline.android.client">Android</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356177741">iPhone</a>, <a href="https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe">Windows</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356178125">MacOS</a>
 
 <b>✅Шаг 2:</b> Получите ключ и вставьте его в скаченное приложении
 
@@ -65,7 +60,7 @@ instruction = """
 
 instruction2 = """
 <b>🌏 Как пользоваться VPN?</b>
-<b>✅Шаг 1:</b> Скачайте приложение <a href="https://play.google.com/store/apps/details?id=org.outline.android.client">Android</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356177741">iPhone</a>, <a href="https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe">Windows</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356178125">MacOS</a>
+<b>✅Шаг 1:</b> Скачайте приложение Outline <a href="https://play.google.com/store/apps/details?id=org.outline.android.client">Android</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356177741">iPhone</a>, <a href="https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe">Windows</a>, <a href="https://apps.apple.com/us/app/outline-app/id1356178125">MacOS</a>
 <b>✅Шаг 2:</b> Получите ключ и вставьте его в скаченное приложении
 <b>✅Шаг 3:</b> Готово! Теперь у вас стабильный VPN без рекламы
 """
@@ -86,31 +81,32 @@ subscription_prompt = "Выберите, на сколько месяцев оф
 
 
 # ответы об оплате
-def answer_if_buy(key_value, server_id):
-    global instruction2
+def answer_if_buy(server_id):
+    global instruction
     location = server_id_country.get(server_id)
 
     answer_if_buy = f"""Покупка прошла успешно👌!
     
-📍Локация: {location}    
+📍Локация: {location}  
+{instruction}
 
-<b>ВАШ КЛЮЧ 🔑</b>
+<b>НИЖЕ ВАШ КЛЮЧ 🔑</b>
 👇 (кликни для копирования)
-<code>{key_value}</code>
 """
-    return answer_if_buy + instruction2
+    return answer_if_buy
 
 
 answer_if_not_balance = "Недостаточно средств. Пожалуйста, пополните ваш баланс.\n" \
                         "👇Выберите необходимую сумму для оплаты👇"
 
-def text_free_tariff(server_id, key_value):
+
+def text_free_tariff(server_id):
     location = server_id_country.get(server_id)
 
     txt = f"<b>Вы получили подарок! 🎁</b>\n\n" \
           f"📍Локация: {location}\n\n" \
-          f"<b>ВАШ КЛЮЧ 🔑</b>\n" \
-          f"<b>👇(Кликните для копирования)</b>\n" \
-          f"– <code>{key_value}</code>\n\n" \
+          f"{instruction2}\n\n"\
+          f"<b>НИЖЕ ВАШ КЛЮЧ 🔑</b>\n" \
+          f"👇 (кликни для копирования)"
 
-    return txt + instruction2
+    return txt

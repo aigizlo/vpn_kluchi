@@ -30,6 +30,9 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
     user_info = user_data.get_userid_firsname_nickname(telegram_id)
     user_id = user_info[0]
 
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
+
     # получаем все key_id юзера
     keys_ids = user_data.get_keys_ids(user_id)
     # узнаем их количество
@@ -58,11 +61,10 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
             # await bot.send_message(chat_id=telegram_id, text=answer, reply_markup=key_buttons)
 
             await bot.send_photo(chat_id=telegram_id,
-                                 photo=file_ids["my_keys"],
+                                 photo=file_ids["change_location"],
                                  caption=answer,
                                  parse_mode="HTML",
                                  reply_markup=key_buttons)
-
 
         else:
             # если ключ один то..
@@ -125,10 +127,15 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
             return
 
-        answer = answer_if_change(new_key, location)
+        answer = answer_if_change(location)
 
-        await bot.send_message(telegram_id, answer, parse_mode="HTML", disable_web_page_preview=True,
-                               reply_markup=main_menu_inline())
+        key_value = f'<code>{new_key}</code>'
+
+        await bot.send_photo(telegram_id, photo=file_ids["location"],
+                             caption=answer,
+                             parse_mode="HTML")
+        await bot.send_message(telegram_id, key_value, "HTML", main_menu_inline())
+
     except Exception as e:
         logger.error(f'(choosing_new_location) Ошибка при выборе новой локации - {e}')
 

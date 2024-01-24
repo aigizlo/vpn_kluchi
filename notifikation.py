@@ -1,7 +1,7 @@
 from flask import Flask, request
-from telebot_ import main_menu_telebot
+from telebot_ import main_menu_telebot, main_menu_telebot2
 
-from config import admin, file_ids, err_send
+from config import admin, file_ids, err_send, support
 from logic_keys.add_keys import add_keys
 from logic_keys.renewal_keys import renewal_keys
 from text import answer_if_buy
@@ -64,17 +64,29 @@ def searche_key_id_user_id(pay_id):
 def buy_key(user_id, amount):
     from handlers.handlers import amount_to_days
 
-    days = amount_to_days.get(int(amount))
+    amount_float = float(amount)
+    days = amount_to_days.get(int(amount_float) if amount_float.is_integer() else amount_float)
 
-    logger.info(f"am - {amount},d -  {days}")
+    try:
 
-    _, key_value, server_id = add_keys(user_id, days)
+        logger.info(f"am - {amount},d -  {days}")
 
-    answer = answer_if_buy(key_value, server_id)
+        _, key_value, server_id = add_keys(user_id, days)
 
-    telegram_id = user_data.get_tg_if_use_user_id(user_id)
+        answer = answer_if_buy(server_id)
 
-    sync_send_photo(telegram_id, file_ids['key'], answer, "HTML", main_menu_telebot())
+        key_value_message = f'<code>{key_value}</code>'
+
+        telegram_id = user_data.get_tg_if_use_user_id(user_id)
+
+        sync_send_photo(telegram_id, file_ids['key'], answer, "HTML")
+
+        sync_send_message(telegram_id, key_value_message, "HTML", main_menu_telebot2())
+
+    except Exception as e:
+        logger.error(f"ERROR:Ошибка при отправке купленного ключа user_id - {user_id}, ошибка - {e} ")
+        sync_send_message(err_send, f"Ошибка при отправке купленного ключа user_id - {user_id}")
+        sync_send_message(telegram_id, f"Произошла ошибка, обратитесь к администратору - {support}")
 
 
 # обновляем статус платежа на оплаченый
@@ -98,7 +110,7 @@ def payment_notification():
         data['pay_id'],
         data['merchant_id'],
         data['status'],
-        data['test'],
+        # data['test'],
         secret_key
 
     ])
@@ -123,8 +135,6 @@ def payment_notification():
     key_id, user_id = searche_key_id_user_id(pay_id)
     # если key_id = None то это покупка, в остальных - продление
 
-    # logger.infoey_id, user_id)
-
     if status == 'paid':
         status = 1
         update_pay_id_status(pay_id, status)
@@ -132,16 +142,22 @@ def payment_notification():
     if not key_id:
         buy_key(user_id, amount)
     else:
-        key_id = renewal_keys(int(key_id), int(amount))
+        key_id = renewal_keys(int(key_id), amount)
         if key_id:
             notifi_user(user_id, key_id)
 
-    logger.info(f"Поступили данные ANY PAY {currency}, {amount}, {pay_id}, {merchant_id}, {status}")
+    logger.info(f"Поступили данные ANY PAY {currency}, {amount}, {pay_id}, {merchant_id}, {status}, test- {test}")
 
-    sync_send_message(admin, text=f"Поступил платеж на сумму {amount} рублей")
+    if test == "0":
+        sync_send_message(admin, text=f"Поступил платеж на сумму {amount} рублей")
+        logger.info(f"Сообщили админу")
+        sync_send_message(err_send, text=f"Поступил платеж на сумму {amount}рублей")
+        logger.info(f"Сообщили разработчику")
     sync_send_message(err_send, text=f"Поступил платеж на сумму {amount}рублей")
+    logger.info(f"Сообщили разработчику")
 
     return 'OK', 200
+
 
 #
 # @app.route('/notifi_payment_fropay_den', methods=['POST'])

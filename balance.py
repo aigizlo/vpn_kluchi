@@ -79,8 +79,9 @@ def creating_payment(amount, user_id):
             sql_create_bill = "INSERT INTO bills (amount, user_id) VALUES (%s, %s)"
 
             mycursor.execute(sql_create_bill, (amount, user_id,))
+            pay_id = mycursor.lastrowid
 
-            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}")
+            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}, pay_id - {pay_id}")
 
         return mycursor.lastrowid
 
@@ -97,7 +98,9 @@ def creating_payment_for_renewal(amount, user_id, key_id):
 
             mycursor.execute(sql_create_bill, (amount, user_id, key_id,))
 
-            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}")
+            pay_id = mycursor.lastrowid
+
+            logger.info(f"CREATE PAYMENT - SUCSSESS: user_id - {user_id}, amount - {amount}, pay_id - {pay_id}")
 
         return mycursor.lastrowid
 
