@@ -347,12 +347,19 @@ async def handle_docs_photo(message: types.Message):
     # Обработка фото
     if message.photo:
         photo_id = message.photo[-1].file_id  # Берем file_id самой большой версии фото
+
+        await bot.send_photo(chat_id=err_send,
+                             photo=photo_id,
+                             caption=f"от {user_info}")
         logger.info(f"Photo ID: {photo_id}, Caption: {caption}, user - {user_info}")
         # Здесь вы можете сохранить photo_id и caption в файл или базу данных
 
     # Обработка видео
     elif message.video:
         video_id = message.video.file_id
+        await bot.send_video(chat_id=err_send,
+                             photo=video_id,
+                             caption=f"от {user_info}")
         logger.info(f"Video ID: {video_id}, Caption: {caption}, user - {user_info}")
 
 
