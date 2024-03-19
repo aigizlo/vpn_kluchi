@@ -7,7 +7,9 @@ async def set_default_commands(dp):
     await dp.bot.set_my_commands(
         [
             types.BotCommand("start", "Запустить бота"),
-            types.BotCommand("help", "Вывести справку"),
+            types.BotCommand("menu", "Главное меню"),
+            types.BotCommand("my_info", "Вывести информацию о себе"),
+            types.BotCommand("help", "Техническая поддержка"),
             types.BotCommand("instruction", "Инструкция"),
         ]
     )
@@ -19,7 +21,7 @@ adminpanelmenu = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text='С фото 🏞'),
-            KeyboardButton(text='С видео 🎥')
+            KeyboardButton(text='С клавиатурой')
         ],
         [
             KeyboardButton(text="Пропустить ➡️")

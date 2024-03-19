@@ -1,4 +1,4 @@
-from config import one_month, three_month, one_year
+from config import one_month, three_month, one_year, get_mohth_with_products
 from get_conn import create_connection
 from logger import logger
 
@@ -35,11 +35,28 @@ logger_template = {
 
 
 # продлеваем ключ, по telegram_id, key_name (название ключа), month - месяц
-def renewal_keys(key_id, amount):
-    amount_float = float(amount)
-    month = get_month.get(int(amount_float))
+def renewal_keys(key_id, product):
 
-    logger.info(f'Продление ключа  key_id - {key_id}, сумма - {amount}, месяц - {month}', )
+    month = get_mohth_with_products.get(product)
+
+    # logger.info(f'Продление ключа  key_id - {key_id}, сумма - {amount}, месяц - {month}', )
+
+    try:
+        # подключаемся к базе
+        with create_connection() as mydb, mydb.cursor(buffered=True) as mycursor:
+            # продлеваем данный ключ на указанный month (обновляем дату работы ключа)
+            mycursor.execute(sql_update_date_work_key, (month, key_id))
+            logger.info(logger_template["info"].format(key_id=key_id, month=month))
+            return key_id
+
+    except Exception as e:
+        logger.error(logger_template["error"].format(key_id=key_id, month=month, e=e))
+        return False
+
+
+def renewal_keys_admin_command(key_id, month):
+
+    logger.info(f'Продление ключа  key_id - {key_id}, на срок - {month} месяцев', )
 
     try:
         # подключаемся к базе

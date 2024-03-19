@@ -15,6 +15,9 @@ sql_get_server_id = '''SELECT server_id FROM outline_keys WHERE outline_key_id =
 
 sql_delete_from_bd = "DELETE FROM outline_keys WHERE outline_key_id = %s"
 
+sql_delete_from_bd2 = "DELETE FROM user_keys WHERE key_id = %s"
+
+
 sql_set_new_key_id = "UPDATE user_keys SET key_id = %s WHERE key_id = %s"
 
 sql_get_outline_key_id = "SELECT outline_key_id FROM outline_keys WHERE key_id = %s"
@@ -27,7 +30,7 @@ sql_select_user_id = "SELECT user_id FROM users WHERE user_id = %s"
 
 sql_select_unused_key = "SELECT * FROM outline_keys WHERE used = 0 AND server_id = %s"
 
-sql_update_key_used = "UPDATE outline_keys SET used = 1 WHERE outline_key_id = %s AND used = 0"
+sql_update_key_used = "UPDATE outline_keys SET used = 1 WHERE outline_key_id = %s AND used = 0 AND server_id = %s"
 
 sql_insert_user_key = """INSERT INTO user_keys (user_id, key_id, start_date, stop_date)
                            VALUES (%s, %s, %s, %s)"""
@@ -52,6 +55,7 @@ def get_minimum_used_server():
 
 def add_keys(user_id, days):
     server_id = get_minimum_used_server()
+    logger.info(f"get_minimum_used_server - {server_id}")
     mydb = create_connection()
     # сроки работы ключа
     start_date = datetime.datetime.now()
@@ -65,28 +69,28 @@ def add_keys(user_id, days):
                 result_id = mycursor.fetchone()
 
                 if result_id is None:
-                    logger.error(f"НЕХВАТКА СВОБОДНЫХ КЛЮЧЕЙ В БАЗЕ ДАННЫХ : "
+                    logger.error(f"NOT_FREE_KEYS НЕХВАТКА СВОБОДНЫХ КЛЮЧЕЙ В БАЗЕ ДАННЫХ : "
                                  f"Не удалось получить неиспользуемый ключ для сервера,  {server_id}")
-                    sync_send_message(err_send, "НЕХВАТКА СВОБОДНЫХ КЛЮЧЕЙ В БАЗЕ ДАННЫХ "
+                    sync_send_message(err_send, "NOT_FREE_KEYS НЕХВАТКА СВОБОДНЫХ КЛЮЧЕЙ В БАЗЕ ДАННЫХ "
                                                 "проверь скрипт create_keys")
 
                     return False
 
                 _key_id, _outline_id, _server_id, _key_value, _used = result_id
                 logger.info(
-                    f"Куплен неиспользуемый ключ id : {_key_id} для пользователя: {user_id}, сервер {server_id}")
+                    f"GET_NEW_KEY Куплен неиспользуемый ключ id : {_key_id} для пользователя: {user_id}, сервер {server_id}")
             except Exception as e:
                 logger.error(
-                    f'KEY_GET_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
+                    f'GET_NEW_KEY_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
                 sync_send_message(err_send,
-                                  f'KEY_GET_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
+                                  f'GET_NEW_KEY_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
                 return False
 
             try:
                 # меняем used с 0 на 1 у текущего ключа
-                mycursor.execute(sql_update_key_used, [_outline_id])
+                mycursor.execute(sql_update_key_used, (_outline_id, server_id,))
             except Exception as e:
-                logger.error(f'KEY_GET_ERROR Ошибка смены 0 на 1 у текущего ключа : {user_id}, {e}')
+                logger.error(f'GET_NEW_KEY_ERROR Ошибка смены 0 на 1 у текущего ключа : {user_id}, {e}')
 
                 return False
 
@@ -102,22 +106,22 @@ def add_keys(user_id, days):
                             f"юзер -  {user_id}")
             except Exception as e:
                 logger.error(
-                    f'KEY_GET_ERROR Ошибка добавления ключа в user_keys + '
+                    f'Ошибка добавления ключа в user_keys + '
                     f'дата начала и конца действия ключа : user_id - {user_id}, {e}')
-                sync_send_message(err_send, f'KEY_GET_ERROR Ошибка добавления ключа в user_keys + '
+                sync_send_message(err_send, f'Ошибка добавления ключа в user_keys + '
                                             f'дата начала и конца действия ключа : {user_id}, {e}')
 
                 return False
 
         return _key_id, _key_value, _server_id
     except Exception as e:
-        logging.error(f'Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
-        sync_send_message(err_send, f'Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
+        logging.error(f'GET_NEW_KEY_ERROR:Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
+        sync_send_message(err_send, f'GET_NEW_KEY_ERROR:Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
         return False
 
 
 def add_free_keys(user_id):
-    days = 3
+    days = 10
     mydb = create_connection()
     server_id = get_minimum_used_server()
 
@@ -143,19 +147,19 @@ def add_free_keys(user_id):
 
                 _key_id, _outline_id, _server_id, _key_value, _used = result_id
                 logger.info(
-                    f"Взят бесплатный неиспользуемый ключ id : {_key_id} для пользователя: {user_id}, сервер {server_id}")
+                    f"GET_TRIAL_KEY id : {_key_id} для пользователя: {user_id}, сервер {server_id}")
             except Exception as e:
                 logger.error(
-                    f'KEY_GET_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
+                    f'GET_TRIAL_KEY_ERROR Ошибка при получении бесплатного ключа из БД id пользователя: {user_id}, {e}')
                 sync_send_message(err_send,
-                                  f'KEY_GET_ERROR Ошибка при получении ключа из БД id пользователя: {user_id}, {e}')
+                                  f'GET_TRIAL_KEY Ошибка при получении бесплатного ключа из БД id пользователя: {user_id}, {e}')
                 return False
 
             try:
                 # меняем used с 0 на 1 у текущего ключа
-                mycursor.execute(sql_update_key_used, [_outline_id])
+                mycursor.execute(sql_update_key_used, (_outline_id, server_id,))
             except Exception as e:
-                logger.error(f'KEY_GET_ERROR Ошибка смены 0 на 1 у текущего ключа : {user_id}, {e}')
+                logger.error(f'GET_TRIAL_KEY Ошибка смены 0 на 1 у текущего ключа : {user_id}, {e}')
 
                 return False
 
@@ -171,17 +175,17 @@ def add_free_keys(user_id):
                             f"юзер -  {user_id}")
             except Exception as e:
                 logger.error(
-                    f'KEY_GET_ERROR Ошибка добавления ключа в user_keys + '
+                    f'GET_TRIAL_KEY_ERROR Ошибка добавления бесплатного ключа в user_keys + '
                     f'дата начала и конца действия ключа : user_id - {user_id}, {e}')
-                sync_send_message(err_send, f'KEY_GET_ERROR Ошибка добавления ключа в user_keys + '
+                sync_send_message(err_send, f'GET_TRIAL_KEY_ERROR Ошибка добавления бесплатного ключа в user_keys + '
                                             f'дата начала и конца действия ключа : {user_id}, {e}')
 
                 return False
 
         return _key_value, _server_id
     except Exception as e:
-        logging.error(f'Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
-        sync_send_message(err_send, f'Произошла ошибка при добавлении ключа: {user_id}, ошибка :{e}')
+        logging.error(f'GET_TRIAL_KEY_ERROR Произошла ошибка при добавлении бесплатного ключа: {user_id}, ошибка :{e}')
+        sync_send_message(err_send, f'Произошла ошибка при добавлении бесплатного ключа: {user_id}, ошибка :{e}')
         return False
 
 
@@ -249,7 +253,7 @@ def exchange_server(key_id, server_id):
             # вносим новый key_id
             execute_query(sql_set_new_key_id, (_key_id, key_id,))
             # меняем used с 0 на 1 у текущего нового ключа
-            mycursor.execute(sql_update_key_used, [_outline_id])
+            mycursor.execute(sql_update_key_used, (_outline_id, server_id,))
 
             # получаем outline_key_id старого ключа
             outline_key_id = execute_query(sql_get_outline_key_id, (key_id,))
@@ -278,6 +282,43 @@ def exchange_server(key_id, server_id):
         logger.error(f"Ошибка при смене ключа - {e}")
 
         return False
+
+
+def delete_key(key_id):
+    mydb = create_connection()
+    try:
+        with mydb.cursor(buffered=True) as mycursor:
+
+            # получаем outline_key_id  ключа
+            outline_key_id = execute_query(sql_get_outline_key_id, (key_id,))
+
+            server_id = execute_query(sql_get_server_id, (outline_key_id[0][0],))
+
+            manager = managers.get(server_id[0][0])
+            try:
+                manager.delete(outline_key_id[0][0])
+                logger.info(f"DELETE_KEYS_FROM_MANAGER - ключ - {key_id} удален успешно из менеджера")
+            except Exception as e:
+                # Обработка других исключений
+                logger.error(
+                    f"ERROR:DELETE_KEYS_FROM_MANAGER - Произошла ошибка при удалении ключа {key_id} из outline manager, ошибка - {e}")
+            try:
+                execute_query(sql_delete_from_bd, (outline_key_id[0]))
+                execute_query(sql_delete_from_bd2, (key_id,))
+
+            except Exception as e:
+                # Обработка других исключений
+                logger.error(
+                    f"ERROR:DELETE_KEYS_FROM_DB - Произошла ошибка при удалении ключа {key_id} из outline_keys, ошибка - {e}")
+                return False
+        return True
+
+    except Exception as e:
+
+        logger.error(f"Ошибка при удалении ключа - {e}")
+
+        return False
+
 # def chek_promo_name(name_promo):
 #     now = datetime.datetime.now()
 #     sql_query = f"""SELECT * FROM users WHERE promocode = '{name_promo}'"""

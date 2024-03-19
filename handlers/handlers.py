@@ -1,12 +1,15 @@
 import aiogram
-from create_pay_links import generate_any_pay_link, generate_fropay_link
+from aiogram.utils.exceptions import TelegramAPIError
+from config import products
+
+from create_pay_links import generate_any_pay_link, generate_free_kassa, create_order
 from text import *
 from aiogram.dispatcher import FSMContext
 from logger import logger
-from config import dp, bot, err_send, secret_key, tg_channel, file_ids
+from config import dp, bot, err_send, secret_key, tg_channel, file_ids, admin, one_month_sale, three_month_sale
 from balance import creating_payment
 from keyboards.keyboards import *
-from logic_keys.add_keys import add_free_keys
+from logic_keys.add_keys import add_free_keys, keys_send
 from states import MyStates
 from user_data import UserData, check_user_in_system
 
@@ -28,10 +31,21 @@ amount_to_month = {
 #     810: 3
 # }
 
+
 amount_to_days = {
     one_month: 31,
+    one_month_sale: 31,
     three_month: 93,
-    one_year: 365
+    three_month_sale: 93,
+    one_year: 365,
+}
+
+price_to_month = {
+    one_month: 1,
+    one_month_sale: 1,
+    three_month: 3,
+    three_month_sale: 3,
+    one_year: 12
 }
 #
 
@@ -86,9 +100,9 @@ async def get_key_command(callback_query: types.CallbackQuery, state: FSMContext
                              photo=file_ids["tarrif"],
                              caption=answer,
                              reply_markup=keyboard)
-        logger.info(f"Получить ключ, user_id - {user_info}")
+        logger.info(f"BUTTON:get_key, user_id - {user_info}")
     except Exception as e:
-        logger.error(f'ERROR - Получить ключ, user_id - {user_info} {e}')
+        logger.error(f'ERROR - BUTTON:get_key, user_id - {user_info} {e}')
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('payment_method:'),
@@ -110,10 +124,11 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
     except aiogram.utils.exceptions.MessageCantBeDeleted:
         logger.info("Сообщение не может быть удалено.")
 
-    price = callback_query.data.split(':')[1]  # получаем цену
+    price = int(callback_query.data.split(':')[1])  # получаем цену
 
-    answer = '''🔑 Получите ключ к стабильному VPN без рекламы
+    month = price_to_month.get(price)
 
+    answer = '''🔑 Получите ключ к стабильному VPN без рекламы 
 👇 Выберите способ оплаты:'''
 
     await state.set_state(MyStates.pay_from_balance)
@@ -121,22 +136,33 @@ async def process_callback_payment_method(callback_query: types.CallbackQuery, s
     # создаем неоплаченый платеж
     pay_id = creating_payment(price, user_id)
 
-    desc = f'{user_id},{price},{pay_id}'
+    print(month)
+    print(type(month))
 
-    any_pay_link = generate_any_pay_link(str(pay_id), desc, str(price), secret_key)
-    # вставляем ссылку в инлайн кнопку
+    print(products.get(month))
 
-    fropay_link = generate_fropay_link(str(pay_id), str(price))
-    keyboard = kb_pay(price, any_pay_link, fropay_link)
+    order_link = create_order(products.get(month), pay_id)
+    # any_pay_link = generate_any_pay_link(str(pay_id), desc, str(price), secret_key)
+    #
+    # fk_link = generate_free_kassa(str(pay_id), str(price))
+    # product = pro
+    # pay_link = create_order(products.get(month), str(pay_id))
+    await state.update_data(user_id=user_id, action='pay', month=month,
+                            amount=int(price), pay_id=pay_id, fk_link=order_link)
+
+    await state.set_state(MyStates.pay_from_balance)
+
+    keyboard = kb_pay(price, order_link)
+
     try:
         await bot.send_photo(chat_id=telegram_id,
                              photo=file_ids["bill"],
                              caption=answer,
                              parse_mode="HTML",
                              reply_markup=keyboard)
-        logger.info(f"Способ оплаты {user_info}")
+        logger.info(f"BUTTON - payment_method {user_info}")
     except Exception as e:
-        logger.error(f'ERROR - Способ оплаты - {user_info}', {e})
+        logger.error(f'ERROR - BUTTON:payment_method - {user_info}', {e})
 
 
 # inline кнопка "Отмена"
@@ -161,34 +187,34 @@ async def process_callback_go_back(callback_query: types.CallbackQuery):
                              caption=instruction,
                              parse_mode="HTML",
                              reply_markup=main_menu_inline())
-        logger.info(f"Отмена - user - {user_info}")
+        logger.info(f"BUTTON:cancel - user - {user_info}")
     except Exception as e:
-        logger.error(f'ERROR - Отмена - {user_info}', {e})
+        logger.error(f'ERROR - BUTTON:cancel - {user_info}', {e})
 
 
 @dp.callback_query_handler(lambda c: c.data == "subscribe_check", state="*")
 async def subscribe_no_thanks(callback_query: types.CallbackQuery):
     telegram_id = callback_query.from_user.id
+    user_info = user_data.get_user_data(telegram_id)
+    user_id = user_info.get("user_id")
+    use_free_tariff = user_info.get("free_tariff")
 
-    user_id = user_data.get_user_id(telegram_id)
-
-    # обновляем последнее действие пользователя
     user_data.update_last_activity(user_id)
 
     answer = '''Вы не подписаны на канал!
 
-✅ Подпишитесь на канал и получите 3 дня пользования ключом БЕСПЛАТНО! 
+✅ Подпишитесь на канал и получите 10 дней пользования ключом БЕСПЛАТНО! 
 '''
 
     subscribe_keyboard = subscribe()
 
-    # Выясняем, есть пользовался ли юзер бесплатным тарифом
-    use_free_tariff = user_data.free_tariff_tg(telegram_id)
     chat_member = await bot.get_chat_member(chat_id=tg_channel,
                                             user_id=telegram_id)
 
+    logger.info(f"BUTTON:subscribe_check user - {user_id}")
+
     if chat_member.status in ["member", "administrator", "creator", "owner"]:
-        if use_free_tariff == "UNUSED":
+        if use_free_tariff == 0:
 
             key_value, server_id = add_free_keys(user_id)
 
@@ -196,17 +222,17 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
 
             key_value = f'<code>{key_value}</code>'
 
-            user_data.change_free_tariff(user_id, 1)
-
             # Обновляем данные об использовании бесплатного тарифа
+            user_data.change_free_tariff(user_id, 1)
 
             await bot.send_message(chat_id=callback_query.from_user.id,
                                    text=answer,
                                    parse_mode="HTML",
                                    disable_web_page_preview=True)
             await bot.send_message(chat_id=callback_query.from_user.id,
-                                   text=key_value, reply_markup=main_menu_inline(),
+                                   text=key_value, reply_markup=in_main_menu(),
                                    parse_mode="HTML")
+            logger.info(f"""BOT_SEND_TRAIL_KEY - {key_value} for user - {user_id, user_info.get("first_name")}""")
 
             try:
                 if callback_query.message.message_id:
@@ -226,11 +252,15 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
         await bot.send_message(chat_id=callback_query.message.chat.id,
                                text=answer,
                                reply_markup=subscribe_keyboard)
+        logger.info(f"user not subscribe tg channel")
 
 
 #
-@dp.callback_query_handler(lambda c: c.data == "subscribe_ago", state="*")
+@dp.callback_query_handler(lambda c: c.data == "get_present", state="*")
 async def check_subscription(callback_query: types.CallbackQuery):
+    user_info = user_data.get_userid_firsname_nickname(callback_query.from_user.id)
+    user_id = user_info[0]
+
     try:
         if callback_query.message.message_id:
             await bot.delete_message(chat_id=callback_query.message.chat.id,
@@ -239,14 +269,12 @@ async def check_subscription(callback_query: types.CallbackQuery):
         logger.info("Сообщение не может быть удалено.")
     telegram_id = callback_query.from_user.id
 
-    user_id = user_data.get_user_id(telegram_id)
-
     # обновляем последнее действие пользователя
     user_data.update_last_activity(user_id)
 
     answer = """🎁 <b>ПОДАРОК ДЛЯ ВАС </b>🎁
 
-✅ Подпишитесь на канал и получите 3 дня пользования ключом БЕСПЛАТНО! 
+✅ Подпишитесь на канал и получите 10 дней пользования ключом БЕСПЛАТНО! 
 """
 
     try:
@@ -256,32 +284,13 @@ async def check_subscription(callback_query: types.CallbackQuery):
                              caption=answer,
                              parse_mode="HTML",
                              reply_markup=subscribe())
+        logger.info(f"BUTTON:get_present user - {user_info}")
 
     except Exception as e:
-        logger.error(f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
+        logger.error(
+            f'ERROR - BUTTON:get_present - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
         await bot.send_message(err_send,
-                               f'ERROR:PROCESSО - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
-
-
-# @dp.callback_query_handler(lambda c: c.data == "", state="*")
-# async def check_subscription(callback_query: types.CallbackQuery):
-
-# @dp.message_handler(commands=['my_info'], state="*")
-# async def my_info(message: types.Message):
-#     try:
-#         user_info = user_data.get_userid_firsname_nickname(message.from_user.id)
-#
-#         user_id = user_info[0]
-#
-#         txt_user_id = f"Мой user_id : {user_id}\n"
-#
-#         await message.reply(txt_user_id, disable_web_page_preview=True,
-#                             parse_mode="HTML")
-#         logger.info(f"my_info command - user {user_id}")
-#
-#     except Exception as e:
-#         logger.info(f"COMMAND_ERROR - /my_info, {e}")
-#         await message.reply(f"Произошла ошибка при получении информации о пользователе .{e}")
+                               f'ERROR - BUTTON:get_present - check_subscription - Ошибка при проверке на подписку {user_id}: {e}')
 
 
 @dp.callback_query_handler(lambda c: c.data == "why_we", state="*")
@@ -304,11 +313,11 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
                              photo=file_ids["why_we"],
                              caption=why_we,
                              parse_mode="HTML",
-                             reply_markup=main_menu_inline())
+                             reply_markup=cancel())
 
-        logger.info(f"Почему мы ? {user_info}")
-    except aiogram.utils.exceptions.MessageCantBeDeleted:
-        logger.error(f"Ошибка при нажатии на Почему мы? - {user_info}")
+        logger.info(f"BUTTON:why_we {user_info}")
+    except Exception as e:
+        logger.error(f"ERROR - BUTTON:why_we - {user_info} , {e}")
 
 
 @dp.callback_query_handler(lambda c: c.data == "video_inst", state="*")
@@ -318,23 +327,15 @@ async def subscribe_no_thanks(callback_query: types.CallbackQuery):
 
     # обновляем последнее действие пользователя
     user_data.update_last_activity(user_info[0])
-
-    try:
-        if callback_query.message.message_id:
-            await bot.delete_message(chat_id=callback_query.message.chat.id,
-                                     message_id=callback_query.message.message_id)
-    except aiogram.utils.exceptions.MessageCantBeDeleted:
-        logger.info(f"Сообщение не может быть удалено. {user_info}")
-
     try:
         await bot.send_video(chat_id=callback_query.message.chat.id,
                              video=file_ids['video'],
                              caption=instruction,
                              parse_mode="HTML",
-                             reply_markup=main_menu_inline2())
-        logger.info(f"Видео инструкция - {user_info}")
+                             reply_markup=cancel())
+        logger.info(f"BUTTON:video_instruction {user_info}")
     except Exception as e:
-        logger.error(f"ERROR - Видео инструкция - {user_info}, {e}")
+        logger.error(f"ERROR - BUTTON:video_instruction - {user_info}, {e}")
 
 
 @dp.message_handler(content_types=['photo', 'video', 'document'])
@@ -351,6 +352,7 @@ async def handle_docs_photo(message: types.Message):
         await bot.send_photo(chat_id=err_send,
                              photo=photo_id,
                              caption=f"от {user_info}")
+
         logger.info(f"Photo ID: {photo_id}, Caption: {caption}, user - {user_info}")
         # Здесь вы можете сохранить photo_id и caption в файл или базу данных
 
@@ -358,20 +360,149 @@ async def handle_docs_photo(message: types.Message):
     elif message.video:
         video_id = message.video.file_id
         await bot.send_video(chat_id=err_send,
-                             photo=video_id,
+                             video=video_id,
                              caption=f"от {user_info}")
+
         logger.info(f"Video ID: {video_id}, Caption: {caption}, user - {user_info}")
+
+    elif message.document:
+        doc_id = message.document.file_id
+        await bot.send_document(chat_id=err_send,
+                                document=doc_id,
+                                caption=f"от {user_info}")
+        logger.info(f"Video ID: {doc_id}, Caption: {caption}, user - {user_info}")
+
+
+@dp.callback_query_handler(lambda c: c.data == "main_menu", state="*")
+async def main_menu(callback_query: types.CallbackQuery):
+    await bot.send_photo(chat_id=callback_query.message.chat.id,
+                         photo=file_ids['menu'],
+                         caption=instruction,
+                         parse_mode="HTML",
+                         reply_markup=main_menu_inline())
+
+
+@dp.callback_query_handler(lambda c: c.data == "get10days", state="*")
+async def get10days(callback_query: types.CallbackQuery):
+    try:
+        if callback_query.message.message_id:
+            await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                     message_id=callback_query.message.message_id)
+    except aiogram.utils.exceptions.MessageCantBeDeleted:
+        logger.info("Сообщение не может быть удалено.")
+
+    telegram_id = callback_query.from_user.id
+
+    user_info = user_data.get_user_data(telegram_id)
+
+    user_id = user_info.get("user_id")
+
+    # обновляем последнее действие пользователя
+    user_data.update_last_activity(user_id)
+
+    # Смотрим, брал ли он триал или нет
+    if user_info.get("free_tariff") == 0:
+
+        key_value, server_id = add_free_keys(user_id)
+
+        answer = text_free_tariff(server_id)
+
+        key_value2 = f'<code>{key_value}</code>'
+        # Обновляем данные об использовании бесплатного тарифа
+
+        user_data.change_free_tariff(user_id, 1)
+
+        # Обновляем данные об использовании бесплатного тарифа
+
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=answer,
+                               parse_mode="HTML",
+                               disable_web_page_preview=True)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=key_value2, reply_markup=in_main_menu(),
+                               parse_mode="HTML")
+        await bot.send_message(chat_id=err_send, text=f"user - {user_id} взял ключ на {10} дней", parse_mode="HTML")
+
+        logger.info(f"""BOT_SEND_TRAIL_KEY - {key_value} for user - {user_info.get("user_id")}""")
+
+        try:
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.message_id)
+        except TelegramAPIError as e:
+            logger.error(f"Произошла ошибка при удалении сообщения: {e}")
+
+    else:
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Вы уже взяли бесплатный ключ\n",
+                               parse_mode="HTML",
+                               disable_web_page_preview=True)
+        try:
+            if callback_query.message.message_id:
+                await bot.delete_message(chat_id=callback_query.message.chat.id,
+                                         message_id=callback_query.message.message_id)
+        except TelegramAPIError as e:
+            logger.error(f"Произошла ошибка при удалении сообщения: {e}")
+
+    # await bot.send_message(chat_id=admin, text=f"user - {user_id} взял ключ на {10} дней ")
+
+    #
+    # try:
+    #     if callback_query.message.message_id:
+    #         await bot.delete_message(chat_id=callback_query.message.chat.id,
+    #                                  message_id=callback_query.message.message_id)
+    # except aiogram.utils.exceptions.MessageCantBeDeleted:
+    #     logger.info("Сообщение не может быть удалено.")
 
 
 @dp.message_handler(commands=['help'], state="*")
-async def my_info(message: types.Message):
-    await message.reply(f"По всем вопросам - {support}")
+async def help_command(message: types.Message):
+    info_user = user_data.get_user_data(message.from_user.id)
+
+    user_id = info_user.get("user_id")
+    await message.reply(f"Техническая поддержка - {support}\nв обращении ОБЯЗАТЕЛЬНО укажите ваш персональный id ("
+                        f"user_id) - {user_id}")
+
+
+@dp.message_handler(commands=['my_info'], state="*")
+async def help_command(message: types.Message):
+    user_info = user_data.get_userid_firsname_nickname(message.from_user.id)
+    user_id = user_info[0]
+    answer = user_data.get_user_info(user_id)
+    keys = user_data.get_user_keys_info(user_id)
+    if not keys:
+        await message.answer(answer, parse_mode="HTML")
+        return
+    _keys = keys_send(keys)
+    await message.answer(answer + '\n\n' + _keys, parse_mode='HTML', disable_web_page_preview=True)
+
+
+@dp.message_handler(commands=['menu'], state="*")
+async def main_menu(message: types.Message):
+    await bot.send_photo(chat_id=message.from_user.id,
+                         photo=file_ids['menu'],
+                         caption=instruction,
+                         parse_mode="HTML",
+                         reply_markup=main_menu_inline())
 
 
 @dp.message_handler(commands=['instruction'], state="*")
-async def my_info(message: types.Message):
+async def instruction_command(message: types.Message):
     await bot.send_video(chat_id=message.from_user.id,
                          video=file_ids['video'],
                          caption=instruction,
                          parse_mode="HTML",
-                         reply_markup=main_menu_inline2())
+                         reply_markup=main_menu_inline())
+
+
+# @dp.message_handler(commands=['products'], state="*")
+# async def instruction_command(message: types.Message):
+#
+#     from config import products
+#
+#     order_link = create_order(products.get(1), '173')
+#     print(order_link)
+#
+#     await message.answer(order_link)
+
+

@@ -38,7 +38,7 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
     # узнаем их количество
     count_keys = len(keys_ids)
 
-    logger.info(f"(change_location_handlers) Сменить локацию user - {user_info}")
+    logger.info(f"BUTTON:exchange_keys Сменить локацию user - {user_info}")
 
     # ищем юзер_айди пользователя
     try:
@@ -65,6 +65,7 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
                                  caption=answer,
                                  parse_mode="HTML",
                                  reply_markup=key_buttons)
+            logger.info(f"user selects a new location - {user_info}")
 
         else:
             # если ключ один то..
@@ -87,8 +88,7 @@ async def change_location_handlers(callback_query: types.CallbackQuery, state: F
             await state.update_data(key_id=key_id)
 
     except Exception as e:
-        logger.error(f"(change_location_handlers)ERROR:Смена локации user - {user_info} ошибка - {e}")
-        # await message.answer(answer_error, reply_markup=main_menu())
+        logger.error(f"ERROR:BUTTON:exchange_keys ошибка локации user - {user_info} ошибка - {e}")
 
 
 # Меняем локацию
@@ -107,7 +107,7 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
         location = server_id_country.get(int(selected_server))
 
-        logger.info(f"(choosing_new_location) Выбрана новая локация {location}, user - {user_info}")
+        logger.info(f"choosing_new_location Выбрана новая локация {location}, user - {user_info}")
 
         try:
             if callback_query.message.message_id:
@@ -123,7 +123,7 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
 
             await bot.send_message(telegram_id, answer)
 
-            logger.info(f"Ошибка при смене локации user - {user_info}")
+            logger.error(f"ERROR:choosing_new_location Ошибка при смене локации user - {user_info}")
 
             return
 
@@ -137,10 +137,10 @@ async def choosing_new_location(callback_query: types.CallbackQuery, state: FSMC
         await bot.send_message(telegram_id, key_value, "HTML", main_menu_inline())
 
     except Exception as e:
-        logger.error(f'(choosing_new_location) Ошибка при выборе новой локации - {e}')
+        logger.error(f"ERROR:choosing_new_location Ошибка при выборе новой локации - {e}")
 
 
-# Выбраный ключ для смены локации
+# Выбранный ключ для смены локации
 @dp.callback_query_handler(lambda c: c.data.startswith("selecting_key_for_exchange"), state=MyStates.state_key_exchange)
 async def select_key_for_exchange(callback_query: types.CallbackQuery, state: FSMContext):
     telegram_id = callback_query.from_user.id

@@ -18,7 +18,7 @@ tg_channel_link = 'https://t.me/off_radar'
 
 
 # локально
-bot_name = 'vpn_offradar_bot'
+bot_name = 'offradar_VPNbot'
 token = '6820291522:AAHbWTF-zSlL3bIdDqmjqSajYBsGbueRlQs'
 
 # на сервере
@@ -42,18 +42,17 @@ merchant_id = '156CC3CBD6B66EFF7F'
 secret_key = 'JtoNDvlTxrQamCDSIDqgWU4DFzSpSTUihoFPMEs'
 project_id = '13544'
 
+#soft_pay
+secret_key_webhook = 'WqissP6PQrHpfll5CLaQPABITHdMQ4XT5hbw'
+api_key = 'yUx7fOB8oVZBiRVRmyeJvAmNmsM8P2Vuw4XTtMpz'
+
+
+
 # # Указываем Merchant ID и Secret Key от Free_kassa
 #
 # secret_word1 = 'DP.oy$a]CsVB=)B'
 # secret_word2 = '$w$79)98%^u9}tj'
 # free_kassa_merchant_id = '40657'
-
-
-# fropay
-secret_key_fropay = '0grmf2jskih1v4x'
-public_key_fropay = 'f49otphlr7e06jg'
-shop_id_fropay = '3904'
-
 
 
 
@@ -123,15 +122,38 @@ coefficeint_bonus = 0.2
 partners = [1]
 partner_bonus = 0.5
 # имеют доступ к админским командам
-admin_from_config = [502811372, 1139164093, 235013345]
+admin_from_config = [502811372, 1139164093, 235013345, 76135502, 5053649442, 109549798]
 # уведомления об ошибках
 err_send = 502811372
 
 
 # цены
 one_month = 149
+one_month_sale = 100
 three_month = 299
+three_month_sale = 150
 one_year = 1199
+
+products = {
+    1:"pTPSESMrZX5yGrwv",
+    3:"njtJDN4hcl8noZPR",
+    12:"FYHC7cLY4MbMVIXv",
+
+}
+
+products_price = {
+    149:"pTPSESMrZX5yGrwv",
+    299:"njtJDN4hcl8noZPR",
+    1199:"FYHC7cLY4MbMVIXv",
+
+}
+
+get_mohth_with_products = {
+    "pTPSESMrZX5yGrwv" : 1,
+    "njtJDN4hcl8noZPR" : 3,
+    "FYHC7cLY4MbMVIXv" : 12,
+}
+
 article = 'https://telegra.ph/Kak-rabotaet-servis-Outline-Nadezhnost-i-Ustojchivost-k-Blokirovkam-10-03'
 
 
@@ -162,6 +184,7 @@ file_ids = {'video': 'BAACAgIAAxkBAAITi2Ww2MOAcbsbFgSnNfcQOgGEthLoAALCSAACxXqJSY
             'renewal_ok': 'AgACAgIAAxkBAAITkmWw2UziQ5mNkfzBnhDBdh4g_KXqAAL51zEbxXqJSXLaBntnUrWuAQADAgADeAADNAQ',
             'renewal': 'AgACAgIAAxkBAAITk2Ww2Vg2Tw_nRuwXClx2T5myUgZ0AAL61zEbxXqJSYMl9z5ZIGCvAQADAgADeAADNAQ',
             'tarrif': 'AgACAgIAAxkBAAITlGWw2WSgFYKHokp0FlYFDG9jt-VLAAL71zEbxXqJSYvsuBhM3htZAQADAgADeAADNAQ',
-            'why_we': 'AgACAgIAAxkBAAITlWWw2XPAFSLAA1x-7bPHx8nm3503AAL81zEbxXqJSY6bDycVxxz1AQADAgADeAADNAQ'}
+            'why_we': 'AgACAgIAAxkBAAITlWWw2XPAFSLAA1x-7bPHx8nm3503AAL81zEbxXqJSY6bDycVxxz1AQADAgADeAADNAQ',
+            'march8': "AgACAgIAAxkBAAIeomXnYD4f-LEnsDWyqZ9UHdvPu-6tAAKS3DEbGUk5SxevXZqj2-I7AQADAgADeAADNAQ",}
 
 

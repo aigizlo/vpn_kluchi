@@ -1,59 +1,41 @@
 import urllib.parse
 import hashlib
 from logger import logger
+import requests
 
 
-def generate_fropay_link(payment_id, amount):
-    from config import shop_id_fropay, public_key_fropay
+def create_order(product_id, pay_id):
+    # URL API для инициализации заказа
+    api_url = 'https://api.softpaymoney.com/api/v1/order'
+    from config import api_key
+    custom_data = {
+        "pay_id": pay_id,
+    }
 
-    # переводим сумму в формат 123.00
-    amount = amount + ".00"
+    # Заголовки запроса, возможно, включая аутентификационный токен
+    headers = {
+        "Authorization": f"{api_key}"  # Замените YOUR_API_KEY на ваш действительный API ключ
+    }
 
-    # формируем строку для генерации хэша
-    hash_string = f'{shop_id_fropay}{amount}{public_key_fropay}{payment_id}'
+    # Данные заказа
+    order_data = {
+        "product": product_id,
+        "customData": custom_data
+    }
 
-    # генерируем хэш
-    payment_hash = hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
+    # Отправляем POST-запрос для создания заказа
+    response = requests.post(api_url, headers=headers, json=order_data)
+    logger.info(f'Запрос для получения ссылки ответ - {response.json()} ')
+    # Проверяем ответ от API
+    data = response.json().get('data')
+    order = data.get("order")
+    status = order.get('status')
 
-    # формируем ссылку для оплаты
-    payment_link = f'https://sci.fropay.bid/get?amount={amount}&desc=MTAyMTU=&shop_id={shop_id_fropay}&label={payment_id}&hash={payment_hash}'
+    url = data.get("url")
 
-    return payment_link
-
-
-def generate_any_pay_link(pay_id, desc, amount, secret_key):
-    project_id = '13544'
-    currency = 'RUB'
-    success_url = ''
-    fail_url = ''
-    try:
-        params = {
-            'merchant_id': project_id,
-            'pay_id': pay_id,
-            'amount': amount,
-            'currency': currency,
-            'desc': desc,
-            'success_url': success_url,
-            'fail_url': fail_url
-        }
-
-        arr_sign = [project_id, pay_id, amount, currency, desc, success_url, fail_url, secret_key]
-
-        # подпись
-        sign = hashlib.sha256(":".join(arr_sign).encode()).hexdigest()
-
-        # params['sign'] = sign
-        encoded_params = urllib.parse.urlencode(params)
-
-        # подпись к параметрам
-        encoded_params += f'&sign={sign}'
-
-        # итоговая ссылка
-        payment_url = f"https://anypay.io/merchant?{encoded_params}"
-        return payment_url
-
-    except Exception as e:
-        logger.error(f'Ошибка при генерации ссылки - {e}')
-        return False
-
-
+    if response.status_code == 201:
+        if status == 'CREATED':
+            return url
+        else:
+            return False
+    return False

@@ -12,6 +12,8 @@ usa_server = 2
 
 servers_ids = [germany_server, usa_server]
 
+free_keys = 8
+
 
 # проверка на кол-во ключей по сервер_айди
 def ChekCountKeys(server_id):
@@ -22,7 +24,7 @@ def ChekCountKeys(server_id):
                 result = mycursor.fetchone()
                 # logger.info(f"{result} количество свободных ключей на сервере {server_id}")
 
-                if result[0] < 5:
+                if result[0] < free_keys:
                     # если количество меньше 30, то запускаем функцию по созданию
                     create_keys_servers(result[0], server_id)
 
@@ -38,7 +40,7 @@ def create_keys_servers(keys, server_id):
     # Устанавиливаем менеджер(outline_api)
     _manager = managers.get(server_id)
     # выясняем сколько нужно создать
-    generate = 5 - keys
+    generate = free_keys - keys
     # Создание ключа
     try:
         with create_connection() as mydb:
@@ -57,7 +59,7 @@ def create_keys_servers(keys, server_id):
 
     except Exception as e:
         logger.error(f"ERROR:create_keys_servers - {e}")
-        sync_send_message(f"ERROR:create_keys_servers - {e}")
+        sync_send_message(err_send, f"ERROR:create_keys_servers - {e}")
 
 
 def run_create_keys():

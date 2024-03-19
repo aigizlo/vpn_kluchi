@@ -8,10 +8,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.utils import executor
 
 from expider_keys import get_expired_keys_info
-from handlers.handlers import get_key_command, my_info, process_callback_payment_method
+from handlers.handlers_referal_program import *
+from handlers.handlers import *
 from handlers.handlers_change_location import change_location_handlers
 from handlers.send_all import *
-from handlers.admin_command import user_info_command
+from handlers.admin_command import user_info_command, prolong_key
 from text import not_bot_text, instruction
 from handlers.handlers_mykeys import *
 from aiogram import types
@@ -32,8 +33,14 @@ get_video_id
 get_testpost
 sendposts
 cancel_post
-subscribe
-my_info
+process_partners_command
+main_menu
+help_command
+instruction_command
+get10days
+main_menu
+prolong_key
+# admin_commands
 
 process_callback_payment_method
 change_location_handlers
@@ -62,39 +69,34 @@ async def process_start_command(message: types.Message):
                                  reply_markup=main_menu_inline())
             return
 
-        if referer_user_id:
-            referer_telegram_id = User_Data.get_tg_if_use_user_id(referer_user_id)
-            if referer_telegram_id:
-                await bot.send_message(referer_telegram_id, "По вашей ссылке приглашен новый пользователь!")
-
         await message.reply(not_bot_text,
                             parse_mode="HTML",
                             disable_web_page_preview=True,
                             reply_markup=capcha(),
                             )
 
-        logging.info(f"INFO: NEW USER - tg : {telegram_id}, "
+        logging.info(f"INFO: NEW USER - tg :, user_id - {new_user}, tg - {telegram_id}, "
                      f"username : {username}, "
                      f"{referer_user_id}")
-        await bot.send_message(chat_id=err_send, text=f"INFO: NEW USER - tg : {telegram_id}, "
+        await bot.send_message(chat_id=err_send, text=f"INFO: NEW USER - tg :, user_id - {new_user}, tg - {telegram_id}, "
                                                       f"username : {username},"
                                                       f"{referer_user_id}")
-        await bot.send_message(chat_id=admin, text=f"INFO: NEW USER - tg : {telegram_id}, "
+        await bot.send_message(chat_id=admin, text=f"INFO: NEW USER - tg :, user_id - {new_user}, tg - {telegram_id}, "
                                                    f"username : {username},"
                                                    f"{referer_user_id}")
 
     except Exception as e:
         await bot.send_message(err_send, f"Ошибка при регистрации нового пользователя ошибка - {e}")
-        logging.error(f"ERROR: NEW USER - Ошибка при добавлении нового пользователя "
+        logging.error(f"ERROR:NEW USER - Ошибка при добавлении нового пользователя "
                       f"tg - {telegram_id}, "
                       f"ошибка - {e}")
 
 
 @dp.callback_query_handler(lambda c: c.data == "not_bot", state="*")
 async def start_to_use_bot(callback_query: types.CallbackQuery):
-    telegram_id = callback_query.message.chat.id
-    user_id = User_Data.get_user_id(telegram_id)
 
+    user_info = User_Data.get_user_data(callback_query.message.chat.id)
+    user_id = user_info.get("user_id")
     # обновляем последнее действие пользователя
     User_Data.update_last_activity(user_id)
 
@@ -105,7 +107,7 @@ async def start_to_use_bot(callback_query: types.CallbackQuery):
                                      message_id=callback_query.message.message_id)
     except aiogram.utils.exceptions.MessageCantBeDeleted:
         logger.info("Сообщение не может быть удалено.")
-    logger.info(f"Капча пройдена user_id - {user_id}")
+    logger.info(f"CAPTCHA:SUCSSESS - {user_id}")
 
     # kb_free_tariff = free_tariff()
 

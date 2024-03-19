@@ -43,6 +43,13 @@ class MyStates(FSMContext):
 
     state_choice_fee_tariff = 'state_choice_fee_tariff'
 
+
+    # promocodes states (эти состояния не задейственны)
+    state_promo_my = "state_promo_my"
+    state_promo_create = "state_promo_create"
+    state_promo_name = "state_promo_name"
+
+
 class GetuserInfo(StatesGroup):
         twitter = State()
         get_username = State()
@@ -50,9 +57,14 @@ class GetuserInfo(StatesGroup):
         text = State()
         next_stage = State()
         get_img = State()
-        get_video = State()
+        get_keyboard = State()
         finishpost = State()
         publish = State()
         reason = State()
         discord = State()
+
+
+class Statistic(StatesGroup):
+    date = State()
+    next_stage = State()
 

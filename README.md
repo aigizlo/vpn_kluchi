@@ -1,2 +1,0 @@
-# outlinex
-telegram bot

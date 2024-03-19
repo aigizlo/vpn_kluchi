@@ -2,7 +2,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 from keyboards.admin_buutons import *
 from keyboards.keyboards import *
-from user_data import get_all_users, UserData
+from user_data import get_all_users, UserData, get_users_not_trial_and_not_keys
 from config import dp, bot
 from states import GetuserInfo
 
@@ -36,16 +36,16 @@ async def get_photo_id(message: types.Message, state: FSMContext):
     await message.answer('✅ Данные получены, нажмите "продолжить"', reply_markup=adminpanelcontinue)
 
 
-@dp.message_handler(state=GetuserInfo.next_stage, text='С видео 🎥')
+@dp.message_handler(state=GetuserInfo.next_stage, text='С клавиатурой')
 async def get_video(message: types.Message, state: FSMContext):
-    await message.answer('Отправьте видео 🎥 :')
-    await GetuserInfo.get_video.set()
+    await message.answer("""У есть 1 клавиатура - '✅ Получить ключ' - 'get10days'""")
+    await GetuserInfo.get_keyboard.set()
 
 
-@dp.message_handler(state=GetuserInfo.get_video, content_types=types.ContentType.VIDEO)
+@dp.message_handler(state=GetuserInfo.get_keyboard)
 async def get_video_id(message: types.Message, state: FSMContext):
-    fileid = message.video.file_id
-    await state.update_data(videoid=fileid)
+    keyboard = presenr10()
+    await state.update_data(keyboard=keyboard)
     await GetuserInfo.finishpost.set()
     await message.answer('✅ Данные получены, нажмите "продолжить"', reply_markup=adminpanelcontinue)
 
@@ -56,14 +56,11 @@ async def get_testpost(message: types.Message, state: FSMContext):
     data = await state.get_data()
     post_text = data.get('textpost')
     photoid = data.get('photoid')
-    videoid = data.get('videoid')
+    keyboard = data.get('keyboard')
     user = message.from_user.id
     try:
         if photoid:
             await bot.send_photo(user, photo=photoid, caption=post_text,
-                                 parse_mode='HTML', reply_markup=startposting)
-        elif videoid:
-            await bot.send_video(user, video=videoid, caption=post_text,
                                  parse_mode='HTML', reply_markup=startposting)
         else:
             await bot.send_message(user, disable_web_page_preview=True, text=post_text, parse_mode='HTML',
@@ -82,21 +79,22 @@ async def sendposts(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     post_text = data.get('textpost')
     photoid = data.get('photoid')
-    videoid = data.get('videoid')
+    keyboard = data.get('keyboard')
     senpostcol = 0
     user_ids = get_all_users()
+    # user_ids = get_users_not_trial_and_not_keys()
     for user in user_ids:
         post_text = post_text.format_map({
         })
         try:
             if photoid:
-                await bot.send_photo(user, photo=photoid, caption=post_text,
+                await bot.send_photo(user, photo=photoid, caption=post_text, reply_markup=presenr10(),
                                      parse_mode='HTML')
-            elif videoid:
-                await bot.send_video(user, video=videoid, caption=post_text,
-                                     parse_mode='HTML')
+            # elif videoid:
+            #     await bot.send_video(user, video=videoid, caption=post_text,
+            #                          parse_mode='HTML')
             else:
-                await bot.send_message(user, disable_web_page_preview=True, text=post_text, parse_mode='HTML')
+                await bot.send_message(user, disable_web_page_preview=True, text=post_text, parse_mode='HTML', reply_markup=keyboard)
             senpostcol += 1
         except:
             pass

@@ -66,7 +66,7 @@ def keyboard_if_have_keys():
     keyboard.add(
         types.InlineKeyboardButton("📍 Сменить локацию", callback_data="exchange_keys"),
         types.InlineKeyboardButton("⌛ Продлить ключи", callback_data="prolong_keys"),
-        types.InlineKeyboardButton("✅ Получить ключ", callback_data="get_keys"),
+        # types.InlineKeyboardButton("✅ Получить ключ", callback_data="get_keys"),
         types.InlineKeyboardButton("⬅️ Назад", callback_data="go_back"),
     )
     return keyboard
@@ -80,7 +80,7 @@ def plus_balance():
     return keyboard
 
 
-# кнопка для создания промокода
+# клавиатура где пользователю предлагаем подписаться на канал
 def subscribe():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
@@ -92,12 +92,35 @@ def subscribe():
 
 
 # Cпособы оплаты
-def kb_pay(amount, any_pay_link=None, fk_link=None):
+def kb_pay(amount, fk_link=None):
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton(f"Карта/СПБ/Криптовалюта - {amount} рублей", url=any_pay_link),
-        # types.InlineKeyboardButton(f"СПБ / С мобильного / Криптовалюта - {amount} рублей", url=fk_link),
+        # types.InlineKeyboardButton(f"FREE KASSA - {amount} рублей", url=fk_link),
+        # types.InlineKeyboardButton(f"ANY PAY - {amount} рублей", url=any_pay_link),
+        types.InlineKeyboardButton(f"💳 Оплата онлайн - {amount} рублей", url=fk_link),
+        types.InlineKeyboardButton("💰Оплата с партнерского счета", callback_data=f"balance_ref:{amount}"),
         types.InlineKeyboardButton("Отмена", callback_data="go_back")
+    )
+    return keyboard
+
+
+def kb_pay2(amount, fk_link=None):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        # types.InlineKeyboardButton(f"FREE KASSA - {amount} рублей", url=fk_link),
+        # types.InlineKeyboardButton(f"ANY PAY - {amount} рублей", url=any_pay_link),
+        types.InlineKeyboardButton(f"💳 Оплата онлайн - {amount} рублей", url=fk_link),
+        # types.InlineKeyboardButton("💰Оплата с партнерского счета", callback_data=f"balance_ref:{amount}"),
+        types.InlineKeyboardButton("Отмена", callback_data="go_back")
+    )
+    return keyboard
+
+
+def online_pay(fk_link):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        # types.InlineKeyboardButton("💳ANY PAY", url=any_pay_link),
+        types.InlineKeyboardButton("💳Оплата онлайн", url=fk_link),
     )
     return keyboard
 
@@ -106,7 +129,7 @@ def kb_pay(amount, any_pay_link=None, fk_link=None):
 def choice_period():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton(f"3 дня в подарок 🎁", callback_data=f'subscribe_ago'),
+        types.InlineKeyboardButton(f"10 дней в подарок 🎁", callback_data=f'get_present'),
         types.InlineKeyboardButton(f"1 месяц – {one_month} ₽.", callback_data=f'payment_method:{one_month}'),
         types.InlineKeyboardButton(f"3 месяца – {three_month} ₽ (1 мес в 🎁)",
                                    callback_data=f"payment_method:{three_month}"),
@@ -143,15 +166,15 @@ def choice_renewal_period():
 
 
 # Cпособы оплаты
-def get_pay_method_keyboard():
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton("💰any pay", callback_data=f"any_pay"),
-        types.InlineKeyboardButton("💳fro pay", callback_data="fro_pay"),
-        types.InlineKeyboardButton("❌Отмена", callback_data="go_back")
-    )
-    return keyboard
-
+# def get_pay_method_keyboard():
+#     keyboard = types.InlineKeyboardMarkup(row_width=1)
+#     keyboard.add(
+#         types.InlineKeyboardButton("💰any pay", callback_data=f"any_pay"),
+#         types.InlineKeyboardButton("💳fro pay", callback_data="fro_pay"),
+#         types.InlineKeyboardButton("💰Оплата с партнерского счета", callback_data="balance_ref"),
+#         types.InlineKeyboardButton("❌Отмена", callback_data="go_back")
+#     )
+#     return keyboard
 
 def main_menu_inline():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -159,26 +182,27 @@ def main_menu_inline():
         types.InlineKeyboardButton("📹 Видео-инструкция", callback_data=f"video_inst"),
         types.InlineKeyboardButton("🔐 Получить ключ", callback_data=f"get_keys"),
         types.InlineKeyboardButton('🔑 Мои ключи', callback_data=f"my_keys"),
+        types.InlineKeyboardButton('💸 Зарабатывай с нами', callback_data=f"partners"),
         types.InlineKeyboardButton('💡 Почему мы?', callback_data='why_we'))
 
     return keyboard
 
 
-def main_menu_inline2():
+def in_main_menu():
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        types.InlineKeyboardButton("🔐 Получить ключ", callback_data=f"get_keys"),
-        types.InlineKeyboardButton('🔑 Мои ключи', callback_data=f"my_keys"),
-        types.InlineKeyboardButton('💡 Почему мы?', callback_data='why_we'))
-
+        types.InlineKeyboardButton("📹 Видео-инструкция", callback_data=f"video_inst"),
+        types.InlineKeyboardButton("⬅️ Главное меню", callback_data=f"main_menu"),
+    )
     return keyboard
 
-# def back():
-#     keyboard = types.InlineKeyboardMarkup(row_width=1)
-#     keyboard.add(
-#         types.InlineKeyboardButton("🔙Назад", callback_data="go_back")
-#     )
-#     return keyboard
+
+def back():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("🔙Назад", callback_data="go_back")
+    )
+    return keyboard
 
 
 # def back_and_prolong_inline_button():
@@ -191,10 +215,53 @@ def main_menu_inline2():
 #     return keyboard
 
 
-# def back_and_withdraw_inline():
-#     keyboard = types.InlineKeyboardMarkup(row_width=1)
-#     withdraw_button = types.InlineKeyboardButton('Вывод средств', callback_data='withdraw_bonus')
-#     button_back = types.InlineKeyboardButton('🔙Назад', callback_data='go_back')
-#     keyboard.add(withdraw_button, button_back)
-#
-#     return keyboard
+def back_and_withdraw_inline():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    withdraw_button = types.InlineKeyboardButton('🤑 Вывод средств', callback_data='withdraw_bonus')
+    button_back = types.InlineKeyboardButton('⬅️ Главное меню', callback_data='go_back')
+    keyboard.add(withdraw_button, button_back)
+
+    return keyboard
+
+
+def cancel():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_back = types.InlineKeyboardButton('⬅️ Назад', callback_data='go_back')
+    keyboard.add(button_back)
+
+    return keyboard
+
+
+def in_main_menu():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_back = types.InlineKeyboardButton('⬅️ Главное меню', callback_data='go_back')
+    keyboard.add(button_back)
+
+    return keyboard
+
+
+def presenr10():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_back = types.InlineKeyboardButton('✅ Получить ключ', callback_data='get10days')
+    keyboard.add(button_back)
+
+    return keyboard
+
+
+def get_key():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("✅Получить ключ со скидкой", callback_data="get_keys"),
+    )
+    return keyboard
+
+
+def prolong():
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("⌛Продлить ключ со скидкой", callback_data="prolong_keys"),
+
+    )
+    return keyboard
+
+

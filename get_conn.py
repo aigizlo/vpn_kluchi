@@ -9,9 +9,11 @@ def create_connection():
             host=host,
             user=user,
             password=password,
+            unix_socket='/tmp/mysql.sock',
             database=database,
             autocommit=True
         )
+
         # logger.info('DB_CONNECT_SUCCESS')
         return conn  # Возвращаем объект соединения
     except mysql.connector.errors.InterfaceError as err:

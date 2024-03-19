@@ -25,6 +25,14 @@ sql_get_expired_keys_2 = """
     WHERE stop_date < NOW();
 """
 
+# sql_get_expired_keys_2 = """
+#     SELECT u.telegram_id, uk.stop_date, ok.outline_key_id, s.country
+#     FROM user_keys uk     JOIN users u ON u.user_id = uk.user_id
+#     JOIN outline_keys ok ON ok.key_id = uk.key_id
+#     JOIN servers s ON s.server_id = ok.server_id
+#     WHERE stop_date < NOW();
+# """
+
 # # шаблоны для отправки сообщений
 # message_templates = {
 #     'KEY_EXPIRED': "Срок вашего ключа '<b>{name}</b>', страна '<i>{country}</i>' истек, и он был удален",
@@ -48,12 +56,13 @@ message_templates = {
                              "- <b>Ключ № {name}</b>\n"
                              "📍Локация '<i>{country}</i>'\n\n"
                              "✅ Продлите действие вашего ключа, "
-                             "чтобы избежать его удаления",
+                             "чтобы избежать его удаления\n"
+                             ,
     'KEY_EXPIRES_IN_1_DAYS': "⏳ Остался {days} до конца действия ключа:\n\n"
                              "- <b>Ключ № {name}</b>\n"
                              "📍Локация '<i>{country}</i>'\n\n"
                              "✅ Продлите действие вашего ключа,"
-                             "чтобы избежать его удаления",
+                             "чтобы избежать его удаления\n\n"
 }
 
 
@@ -124,9 +133,10 @@ def get_expired_keys_info():
                     # предупреждение за 1 день и предложение продлить ключ
                     try:
                         sync_send_photo(telegram_id, file_ids['renewal'], text, "HTML", key_buttons)
-                        logger.info(f"Пользователю {telegram_id} отправлено сообщение об удалении ключа {key_id}")
-                    except:
-                        logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс")
+                        logger.info(
+                            f"Пользователю {telegram_id} отправлено сообщение об продлении ключа 1 день {key_id}")
+                    except Exception as e:
+                        logger.error(f"Пользователю {telegram_id}, сообщение не доставлено, добавил в чс - {e}")
                     logger.info(f"PROCESS SUCSSESS:get_expired_keys_info {id_for_delet_in_bd} - user_keys и "
                                 f"{id_for_delete_in_manager} - outline_keys")
 
